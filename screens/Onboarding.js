@@ -24,13 +24,10 @@ export default class Onboarding extends React.Component {
           <Block flex space="around" style={{ zIndex: 2 }}>
             <Block>
               <Block>
-                <Text color="white" size={60}>Material</Text>
-              </Block>
-              <Block row>
-                <Text color="white" size={60}>Kit</Text>
+                <Text color="white" size={60}>MyBudget</Text>
               </Block>
               <Text size={16} color='rgba(255,255,255,0.6)'>
-                Fully coded React Native components.
+                Gestiona tu presupuesto, contabilizando tus ingresos, gastos, inversiones y prestamos.
               </Text>
             </Block>
             <Block center>
@@ -39,7 +36,16 @@ export default class Onboarding extends React.Component {
                 style={styles.button}
                 color={materialTheme.COLORS.BUTTON_COLOR}
                 onPress={() => navigation.navigate('App')}>
-                GET STARTED
+                Iniciar Sesión
+              </Button>
+            </Block> 
+            <Block center>
+              <Button
+                shadowless
+                style={styles.button}
+                color={materialTheme.COLORS.BUTTON_COLOR}
+                onPress={() => navigation.navigate('App')}>
+                Registrarse
               </Button>
             </Block>
           </Block>

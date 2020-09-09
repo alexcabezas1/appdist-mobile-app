@@ -11,6 +11,13 @@ import OnboardingScreen from '../screens/Onboarding';
 import ProfileScreen from '../screens/Profile';
 import ProScreen from '../screens/Pro';
 import SettingsScreen from '../screens/Settings';
+import IngresosScreen from '../screens/Ingresos';
+import EgresosScreen from '../screens/Egresos';
+import TarjetasScreen from '../screens/Tarjetas';
+import CuentasBancariasScreen from '../screens/CuentasBancarias';
+import InversionesScreen from '../screens/Inversiones';
+import PrestamosScreen from '../screens/Prestamos';
+import PresupuestosScreen from '../screens/Presupuestos';
 
 import CustomDrawerContent from './Menu';
 import { Icon, Header } from '../components';
@@ -22,12 +29,153 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 const profile = {
+  //Reemplazar por informacion dinamica del usuario
   avatar: Images.Profile,
-  name: "Rachel Brown",
-  type: "Seller",
-  plan: "Pro",
+  name: "Nombre Usuario",
+  type: "",
+  plan: "",
   rating: 4.8
 };
+
+function IngresosStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="Ingresos"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Ingresos"
+        component={IngresosScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header title="Ingresos" scene={scene} navigation={navigation} />
+          )
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function EgresosStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="Egresos"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Egresos"
+        component={EgresosScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header title="Egresos" scene={scene} navigation={navigation} />
+          )
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function TarjetasStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="Tarjetas"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Tarjetas"
+        component={TarjetasScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header title="Tarjetas" scene={scene} navigation={navigation} />
+          )
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function CuentasBancariasStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="CuentasBancarias"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Cuentas Bancarias"
+        component={CuentasBancariasScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header title="Cuentas Bancarias" scene={scene} navigation={navigation} />
+          )
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function InversionesStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="Inversiones"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Inversiones"
+        component={InversionesScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header title="Inversiones" scene={scene} navigation={navigation} />
+          )
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function PrestamosStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="Prestamos"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Prestamos"
+        component={PrestamosScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header title="Prestamos" scene={scene} navigation={navigation} />
+          )
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function PresupuestosStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="Presupuestos"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Presupuestos"
+        component={PresupuestosScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header title="Presupuestos" scene={scene} navigation={navigation} />
+          )
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 function ProfileStack(props) {
   return (
@@ -167,42 +315,13 @@ function AppStack(props) {
         }}
       />
       <Drawer.Screen
-        name="Woman"
-        component={ProScreen}
+        name="Ingresos"
+        component={IngresosStack}
         options={{
           drawerIcon: ({ focused }) => (
             <Icon
               size={16}
-              name="md-woman"
-              family="ionicon"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-              style={{ marginLeft: 4, marginRight: 4 }}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Man"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="man"
-              family="entypo"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Kids"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="baby"
+              name="circle-10"
               family="GalioExtra"
               color={focused ? "white" : materialTheme.COLORS.MUTED}
             />
@@ -210,19 +329,89 @@ function AppStack(props) {
         }}
       />
       <Drawer.Screen
-        name="New Collection"
-        component={ProScreen}
+        name="Egresos"
+        component={EgresosStack}
         options={{
           drawerIcon: ({ focused }) => (
             <Icon
               size={16}
-              name="grid-on"
-              family="material"
+              name="circle-10"
+              family="GalioExtra"
               color={focused ? "white" : materialTheme.COLORS.MUTED}
             />
           )
         }}
       />
+      <Drawer.Screen
+        name="Tarjetas"
+        component={TarjetasStack}
+        options={{
+          drawerIcon: ({ focused }) => (
+            <Icon
+              size={16}
+              name="circle-10"
+              family="GalioExtra"
+              color={focused ? "white" : materialTheme.COLORS.MUTED}
+            />
+          )
+        }}
+      />
+      <Drawer.Screen
+        name="CuentasBancarias"
+        component={CuentasBancariasStack}
+        options={{
+          drawerIcon: ({ focused }) => (
+            <Icon
+              size={16}
+              name="circle-10"
+              family="GalioExtra"
+              color={focused ? "white" : materialTheme.COLORS.MUTED}
+            />
+          )
+        }}
+      /> 
+      <Drawer.Screen
+        name="Inversiones"
+        component={InversionesStack}
+        options={{
+          drawerIcon: ({ focused }) => (
+            <Icon
+              size={16}
+              name="circle-10"
+              family="GalioExtra"
+              color={focused ? "white" : materialTheme.COLORS.MUTED}
+            />
+          )
+        }}
+      /> 
+      <Drawer.Screen
+        name="Prestamos"
+        component={PrestamosStack}
+        options={{
+          drawerIcon: ({ focused }) => (
+            <Icon
+              size={16}
+              name="circle-10"
+              family="GalioExtra"
+              color={focused ? "white" : materialTheme.COLORS.MUTED}
+            />
+          )
+        }}
+      /> 
+      <Drawer.Screen
+        name="Presupuestos"
+        component={PresupuestosStack}
+        options={{
+          drawerIcon: ({ focused }) => (
+            <Icon
+              size={16}
+              name="circle-10"
+              family="GalioExtra"
+              color={focused ? "white" : materialTheme.COLORS.MUTED}
+            />
+          )
+        }}
+      />                                  
       <Drawer.Screen
         name="Profile"
         component={ProfileStack}
@@ -268,27 +457,13 @@ function AppStack(props) {
         }}
       />
       <Drawer.Screen
-        name="Sign In"
+        name="Iniciar Sesión"
         component={ProScreen}
         options={{
           drawerIcon: ({ focused }) => (
             <Icon
               size={16}
               name="ios-log-in"
-              family="ionicon"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Sign Up"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="md-person-add"
               family="ionicon"
               color={focused ? "white" : materialTheme.COLORS.MUTED}
             />
@@ -457,15 +632,7 @@ const AppStack = createDrawerNavigator(
       screen: ProScreen,
       navigationOptions: (navOpt) => ({
         drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="Sign In" />
-        ),
-      }),
-    },
-    SignUp: {
-      screen: ProScreen,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="Sign Up" />
+          <Drawer focused={focused} screen="Pro" title="Iniciar Sesión" />
         ),
       }),
     },

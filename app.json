@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "rn-material-kit-free",
-    "description": "React Native - Material Kit Free",
-    "slug": "rn-material-kit-free",
+    "name": "TPO-MyBudget-v0",
+    "description": "",
+    "slug": "tpo-mybudget-v0",
     "privacy": "unlisted",
     "sdkVersion": "37.0.0",
     "platforms": [
@@ -25,6 +25,7 @@
     ],
     "ios": {
       "supportsTablet": true
-    }
+    },
+    "githubUrl": "https://github.com/hartepedro/MyBudget-Front"
   }
 }

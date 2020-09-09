@@ -27,7 +27,8 @@ export default class Components extends React.Component {
   renderButtons = () => {
     return (
       <Block flex>
-        <Text bold size={16} style={styles.title}>Pagina de Home</Text>
+        <Text bold size={16} style={styles.title}>Pagina de Cuentas bancarias</Text>
+        <Text bold size={16} style={styles.title}>En esta pagina irá un boton que permitira agregar una Cuenta bancaria, y una lista de las cuentas del usuario, que permitira ver el detalle y eliminar entradas. </Text>
         <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
           <Block center>
             <Button shadowless color={materialTheme.COLORS.DEFAULT} style={[styles.button, styles.shadow]}>

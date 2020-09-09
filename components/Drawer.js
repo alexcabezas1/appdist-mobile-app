@@ -6,19 +6,14 @@ import Icon from "./Icon";
 import materialTheme from "../constants/Theme";
 
 const proScreens = [
-  "Woman",
-  "Man",
-  "Kids",
-  "New Collection",
-  "Sign In",
-  "Sign Up"
+
 ];
 
 class DrawerItem extends React.Component {
   renderIcon = () => {
     const { title, focused } = this.props;
 
-    switch (title) {
+    switch (title) {      
       case "Home":
         return (
           <Icon
@@ -28,42 +23,69 @@ class DrawerItem extends React.Component {
             color={focused ? "white" : materialTheme.COLORS.MUTED}
           />
         );
-      case "Woman":
+      case "Ingresos":
         return (
           <Icon
             size={16}
-            name="md-woman"
-            family="ionicon"
+            name="cart-plus"
+            family="font-awesome"
             color={focused ? "white" : materialTheme.COLORS.MUTED}
           />
-        );
-      case "Man":
+       );
+       case "Egresos":
         return (
           <Icon
             size={16}
-            name="man"
-            family="entypo"
+            name="cart-arrow-down"
+            family="font-awesome"
             color={focused ? "white" : materialTheme.COLORS.MUTED}
           />
-        );
-      case "Kids":
+       );
+       case "Tarjetas":
         return (
           <Icon
             size={16}
-            name="baby"
-            family="GalioExtra"
+            name="credit-card"
+            family="font-awesome"
             color={focused ? "white" : materialTheme.COLORS.MUTED}
           />
-        );
-      case "New Collection":
+       );
+       case "Cuentas Bancarias":
         return (
           <Icon
             size={16}
-            name="grid-on"
-            family="material"
+            name="bank"
+            family="font-awesome"
             color={focused ? "white" : materialTheme.COLORS.MUTED}
           />
-        );
+       ); 
+       case "Inversiones":
+        return (
+          <Icon
+            size={16}
+            name="line-chart"
+            family="font-awesome"
+            color={focused ? "white" : materialTheme.COLORS.MUTED}
+          />
+       ); 
+       case "Prestamos":
+        return (
+          <Icon
+            size={16}
+            name="exchange"
+            family="font-awesome"
+            color={focused ? "white" : materialTheme.COLORS.MUTED}
+          />
+       );
+       case "Presupuestos":
+        return (
+          <Icon
+            size={16}
+            name="pie-chart"
+            family="font-awesome"
+            color={focused ? "white" : materialTheme.COLORS.MUTED}
+          />
+       );                                                    
       case "Profile":
         return (
           <Icon
@@ -87,24 +109,6 @@ class DrawerItem extends React.Component {
           <Icon
             size={16}
             name="md-switch"
-            family="ionicon"
-            color={focused ? "white" : materialTheme.COLORS.MUTED}
-          />
-        );
-      case "Sign In":
-        return (
-          <Icon
-            size={16}
-            name="ios-log-in"
-            family="ionicon"
-            color={focused ? "white" : materialTheme.COLORS.MUTED}
-          />
-        );
-      case "Sign Up":
-        return (
-          <Icon
-            size={16}
-            name="md-person-add"
             family="ionicon"
             color={focused ? "white" : materialTheme.COLORS.MUTED}
           />

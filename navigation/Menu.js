@@ -18,10 +18,13 @@ function CustomDrawerContent({
   const insets = useSafeArea();
   const screens = [
     "Home",
-    "Woman",
-    "Man",
-    "Kids",
-    "New Collection",
+    "Ingresos",
+    "Egresos",
+    "Tarjetas",
+    "Cuentas Bancarias",
+    "Inversiones",
+    "Prestamos",
+    "Presupuestos",
     "Profile",
     "Settings",
     "Components"
@@ -36,26 +39,11 @@ function CustomDrawerContent({
           onPress={() => navigation.navigate("Profile")}
         >
           <Block style={styles.profile}>
-            <Image source={{ uri: profile.avatar }} style={styles.avatar} />
             <Text h5 color={"white"}>
               {profile.name}
             </Text>
           </Block>
         </TouchableWithoutFeedback>
-        <Block row>
-          <Block middle style={styles.pro}>
-            <Text size={16} color="white">
-              {profile.plan}
-            </Text>
-          </Block>
-          <Text size={16} muted style={styles.seller}>
-            {profile.type}
-          </Text>
-          <Text size={16} color={materialTheme.COLORS.WARNING}>
-            {profile.rating}{" "}
-            <Icon name="shape-star" family="GalioExtra" size={14} />
-          </Text>
-        </Block>
       </Block>
       <Block flex style={{ paddingLeft: 7, paddingRight: 14 }}>
         <ScrollView
@@ -82,14 +70,9 @@ function CustomDrawerContent({
       </Block>
       <Block flex={0.3} style={{ paddingLeft: 7, paddingRight: 14 }}>
         <DrawerCustomItem
-          title="Sign In"
+          title="Cerrar Sesión"
           navigation={navigation}
           focused={state.index === 8 ? true : false}
-        />
-        <DrawerCustomItem
-          title="Sign Up"
-          navigation={navigation}
-          focused={state.index === 9 ? true : false}
         />
       </Block>
     </Block>
@@ -109,29 +92,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footer: {
-    paddingHorizontal: 28,
+    backgroundColor: '#4B1958',
+
+    paddingHorizontal: 10,
     justifyContent: 'flex-end'
   },
-  profile: {
-    marginBottom: theme.SIZES.BASE / 2,
-  },
-  avatar: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-    marginBottom: theme.SIZES.BASE,
-  },
-  pro: {
-    backgroundColor: materialTheme.COLORS.LABEL,
-    paddingHorizontal: 6,
-    marginRight: 8,
-    borderRadius: 4,
-    height: 19,
-    width: 38,
-  },
-  seller: {
-    marginRight: 16,
-  }
 });
 
 export default CustomDrawerContent;

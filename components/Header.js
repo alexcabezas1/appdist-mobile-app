@@ -33,16 +33,6 @@ const BasketButton = ({isWhite, style, navigation}) => (
   </TouchableOpacity>
 );
 
-const SearchButton = ({isWhite, style, navigation}) => (
-  <TouchableOpacity style={[styles.button, style]} onPress={() => navigation.navigate('Pro')}>
-    <Icon
-      size={16}
-      family="entypo"
-      name="magnifying-glass"
-      color={theme.COLORS[isWhite ? 'WHITE' : 'ICON']}
-    />
-  </TouchableOpacity>
-);
 
 class Header extends React.Component {
   handleLeftPress = () => {
@@ -52,8 +42,12 @@ class Header extends React.Component {
 
   renderRight = () => {
     const { white, title, navigation } = this.props;
+    return [
+      <ChatButton key='chat-title' navigation={navigation} isWhite={white} />,
+      <BasketButton key='basket-title' navigation={navigation} isWhite={white} />
+    ]
 
-    if (title === 'Title') {
+/*    if (title === 'Title') {
       return [
         <ChatButton key='chat-title' navigation={navigation} isWhite={white} />,
         <BasketButton key='basket-title' navigation={navigation} isWhite={white} />
@@ -101,9 +95,25 @@ class Header extends React.Component {
           <ChatButton key='chat-search' navigation={navigation} isWhite={white} />,
           <BasketButton key='basket-search' navigation={navigation} isWhite={white} />
         ]);
+        case 'Ingresos':
+          return ([
+            <ChatButton key='chat-search' navigation={navigation} isWhite={white} />,
+            <BasketButton key='basket-search' navigation={navigation} isWhite={white} />
+          ]);
+        case 'Egresos':
+          return ([
+            <ChatButton key='chat-search' navigation={navigation} isWhite={white} />,
+            <BasketButton key='basket-search' navigation={navigation} isWhite={white} />
+          ]);
+        case 'Tarjetas':
+          return ([
+            <ChatButton key='chat-search' navigation={navigation} isWhite={white} />,
+            <BasketButton key='basket-search' navigation={navigation} isWhite={white} />
+          ]);          
+            
       default:
         break;
-    }
+    }*/
   }
 
   renderSearch = () => {
