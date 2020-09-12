@@ -15,6 +15,8 @@ import React from "react";
 import { Platform, StatusBar, Image } from "react-native";
 import { AppLoading } from "expo";
 import { Asset } from "expo-asset";
+import * as Font from "expo-font";
+import { Ionicons } from "@expo/vector-icons";
 import { Block, GalioProvider } from "galio-framework";
 
 import { Images, products, materialTheme } from "./constants/";
@@ -76,7 +78,12 @@ export default class App extends React.Component {
   }
 
   _loadResourcesAsync = async () => {
-    return Promise.all([...cacheImages(assetImages)]);
+    const assetFont = Font.loadAsync({
+      Roboto: require("native-base/Fonts/Roboto.ttf"),
+      Roboto_medium: require("native-base/Fonts/Roboto_medium.ttf"),
+      ...Ionicons.font,
+    });
+    return Promise.all([assetFont, ...cacheImages(assetImages)]);
   };
 
   _handleLoadingError = (error) => {

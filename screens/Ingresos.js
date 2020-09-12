@@ -1,347 +1,175 @@
-import React from 'react';
+import React, { Component } from "react";
+import { StyleSheet, Dimensions, Alert } from "react-native";
+import * as Yup from "yup";
+import { Formik } from "formik";
+import { Block, theme } from "galio-framework";
+import { materialTheme } from "../constants/";
+
 import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ImageBackground,
-  Dimensions
-} from 'react-native';
-import { Button, Block, Text, Input, theme } from 'galio-framework';
+  Container,
+  Header,
+  Content,
+  Footer,
+  Form,
+  Item,
+  Input,
+  Label,
+  Picker,
+  Icon,
+  DatePicker,
+  Button,
+  Text,
+} from "native-base";
 
-import { materialTheme, products, Images } from '../constants/';
-import { Select, Icon, Header, Product, Switch } from '../components/';
-
-const { width } = Dimensions.get('screen');
+const { width } = Dimensions.get("screen");
 
 const thumbMeasure = (width - 48 - 32) / 3;
 
-export default class Components extends React.Component {
-  state = {
-    'switch-1': true,
-    'switch-2': false,
-  };
-
-  toggleSwitch = switchId => this.setState({ [switchId]: !this.state[switchId] });
-  
-  renderButtons = () => {
-    return (
-      <Block flex>
-        <Text bold size={16} style={styles.title}>Pagina de Ingresos</Text>
-        <Text bold size={16} style={styles.title}>En esta pagina irá un boton que permitira cargar un Ingreso, y una lista de los ingresos del usuario, que permitira ver el detalle y eliminar entradas. </Text>
-        <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
-          <Block center>
-            <Button shadowless color={materialTheme.COLORS.DEFAULT} style={[styles.button, styles.shadow]}>
-              DEFAULT
-            </Button>
-          </Block>
-          <Block center>
-            <Button shadowless style={[styles.button, styles.shadow]}>
-              PRIMARY
-            </Button>
-          </Block>
-          <Block center>
-            <Button shadowless color="info" style={[styles.button, styles.shadow]}>
-              INFO
-            </Button>
-          </Block>
-          <Block center>
-            <Button shadowless color="success" style={[styles.button, styles.shadow]}>
-              SUCCESS
-            </Button>
-          </Block>
-          <Block center>
-            <Button shadowless color="warning" style={[styles.button, styles.shadow]}>
-              WARNING
-            </Button>
-          </Block>
-          <Block center>
-            <Button shadowless color="error" style={[styles.button, styles.shadow]}>
-              ERROR
-            </Button>
-          </Block>
-          <Block row space="evenly">
-            <Block flex left>
-              <Select
-                defaultIndex={1}
-                options={[1, 2, 3, 4, 5]}
-                style={styles.shadow}
-              />
-            </Block>
-            <Block flex center>
-              <Button
-                center
-                shadowless
-                color={materialTheme.COLORS.DEFAULT}
-                textStyle={styles.optionsText}
-                style={[styles.optionsButton, styles.shadow]}>
-                DELETE
-              </Button>
-            </Block>
-            <Block flex={1.25} right>
-              <Button
-                center
-                shadowless
-                color={materialTheme.COLORS.DEFAULT}
-                textStyle={styles.optionsText}
-                style={[styles.optionsButton, styles.shadow]}>
-                SAVE FOR LATER
-              </Button>
-            </Block>
-          </Block>
-        </Block>
-      </Block>
-    )
+export default class RegistrarIngreso extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { chosenDate: new Date() };
+    this.setDate = this.setDate.bind(this);
   }
-  
-  renderText = () => {
-    return (
-      <Block flex style={styles.group}>
-        <Text bold size={16} style={styles.title}>Typography</Text>
-        <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
-          <Text h1 style={{marginBottom: theme.SIZES.BASE / 2}}>Heading 1</Text>
-          <Text h2 style={{marginBottom: theme.SIZES.BASE / 2}}>Heading 2</Text>
-          <Text h3 style={{marginBottom: theme.SIZES.BASE / 2}}>Heading 3</Text>
-          <Text h4 style={{marginBottom: theme.SIZES.BASE / 2}}>Heading 4</Text>
-          <Text h5 style={{marginBottom: theme.SIZES.BASE / 2}}>Heading 5</Text>
-          <Text p style={{marginBottom: theme.SIZES.BASE / 2}}>Paragraph</Text>
-          <Text muted>This is a muted paragraph.</Text>
-        </Block>
-      </Block>
-    )
+  setDate(newDate) {
+    this.setState({ chosenDate: newDate });
   }
-  
-  renderInputs = () => {
-    return (
-      <Block flex style={styles.group}>
-        <Text bold size={16} style={styles.title}>Inputs</Text>
-        <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
-          <Input
-            right
-            placeholder="icon right"
-            placeholderTextColor={materialTheme.COLORS.DEFAULT}
-            style={{ borderRadius: 3, borderColor: materialTheme.COLORS.INPUT }}
-            iconContent={<Icon size={16} color={theme.COLORS.ICON} name="camera-18" family="GalioExtra" />}
-          />
-        </Block>
-      </Block>
-    )
-  }
-  
-  renderSwitches = () => {
-    return (
-      <Block flex style={styles.group}>
-        <Text bold size={16} style={styles.title}>Switches</Text>
-        <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
-          <Block row middle space="between" style={{ marginBottom: theme.SIZES.BASE }}>
-            <Text size={14}>Switch is ON</Text>
-            <Switch
-              value={this.state['switch-1']}
-              onValueChange={() => this.toggleSwitch('switch-1')}
-            />
-          </Block>
-          <Block row middle space="between">
-            <Text size={14}>Switch is OFF</Text>
-            <Switch
-              value={this.state['switch-2']}
-              onValueChange={() => this.toggleSwitch('switch-2')}
-            />
-          </Block>
-        </Block>
-      </Block>
-    )
-  }
-  
-  renderTableCell = () => {
-    const { navigation } = this.props;
-    return (
-      <Block flex style={styles.group}>
-        <Text bold size={16} style={styles.title}>Table Cell</Text>
-        <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
-          <Block style={styles.rows}>
-            <TouchableOpacity onPress={() => navigation.navigate('Pro')}>
-              <Block row middle space="between" style={{ paddingTop: 7 }}>
-                <Text size={14}>Manage Options</Text>
-                <Icon name="angle-right" family="font-awesome" style={{ paddingRight: 5 }} />
-              </Block>
-            </TouchableOpacity>
-          </Block>
-        </Block>
-      </Block>
-    )
-  }
-  
-  renderNavigation = () => {
-    return (
-      <Block flex style={styles.group}>
-        <Text bold size={16} style={styles.title}>Navigation</Text>
-        <Block>
-          <Block style={{ marginBottom: theme.SIZES.BASE }}>
-            <Header back title="Title" navigation={this.props.navigation} />
-          </Block>
-
-          <Block style={{ marginBottom: theme.SIZES.BASE }}>
-            <Header search title="Title" navigation={this.props.navigation} />
-          </Block>
-
-          <Block style={{ marginBottom: theme.SIZES.BASE }}>
-            <Header
-              tabs
-              search
-              title="Title"
-              tabTitleLeft="Option 1"
-              tabTitleRight="Option 2"
-              navigation={this.props.navigation} />
-          </Block>
-        </Block>
-      </Block>
-    )
-  }
-  
-  renderSocial = () => {
-    return (
-      <Block flex style={styles.group}>
-        <Text bold size={16} style={styles.title}>Social</Text>
-        <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
-          <Block row center space="between">
-            <Block flex middle right>
-              <Button
-                round
-                onlyIcon
-                shadowless
-                icon="facebook"
-                iconFamily="font-awesome"
-                iconColor={theme.COLORS.WHITE}
-                iconSize={theme.SIZES.BASE * 1.625}
-                color={theme.COLORS.FACEBOOK}
-                style={[styles.social, styles.shadow]}
-              />
-            </Block>
-            <Block flex middle center>
-              <Button
-                round
-                onlyIcon
-                shadowless
-                icon="twitter"
-                iconFamily="font-awesome"
-                iconColor={theme.COLORS.WHITE}
-                iconSize={theme.SIZES.BASE * 1.625}
-                color={theme.COLORS.TWITTER}
-                style={[styles.social, styles.shadow]}
-              />
-            </Block>
-            <Block flex middle left>
-              <Button
-                round
-                onlyIcon
-                shadowless
-                icon="dribbble"
-                iconFamily="font-awesome"
-                iconColor={theme.COLORS.WHITE}
-                iconSize={theme.SIZES.BASE * 1.625}
-                color={theme.COLORS.DRIBBBLE}
-                style={[styles.social, styles.shadow]}
-              />
-            </Block>
-          </Block>
-        </Block>
-      </Block>
-    )
-  }
-  
-  renderCards = () => {
-    return (
-      <Block flex style={styles.group}>
-        <Text bold size={16} style={styles.title}>Cards</Text>
-        <Block flex>
-          <Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
-            <Product product={products[0]} horizontal />
-            <Block flex row>
-              <Product product={products[1]} style={{ marginRight: theme.SIZES.BASE }} />
-              <Product product={products[2]} />
-            </Block>
-            <Product product={products[3]} horizontal />
-            <Product product={products[4]} full />
-            <Block flex card shadow style={styles.category}>
-              <ImageBackground
-                source={{ uri: Images.Products['Accessories'] }}
-                style={[styles.imageBlock, { width: width - (theme.SIZES.BASE * 2), height: 252 }]}
-                imageStyle={{ width: width - (theme.SIZES.BASE * 2), height: 252 }}>
-                <Block style={styles.categoryTitle}>
-                  <Text size={18} bold color={theme.COLORS.WHITE}>Accessories</Text>
-                </Block>
-              </ImageBackground>
-            </Block>
-          </Block>
-        </Block>
-      </Block>
-    )
-  }
-  
-  renderAlbum = () => {
-    const { navigation } = this.props;
-
-    return (
-      <Block flex style={[styles.group, { paddingBottom: theme.SIZES.BASE * 5 }]}>
-        <Text bold size={16} style={styles.title}>Album</Text>
-        <Block style={{ marginHorizontal: theme.SIZES.BASE * 2 }}>
-          <Block flex right>
-            <Text
-              size={12}
-              color={theme.COLORS.PRIMARY}
-              onPress={() => navigation.navigate('Home')}>
-              View All
-            </Text>
-          </Block>
-          <Block row space="between" style={{ marginTop: theme.SIZES.BASE, flexWrap: 'wrap' }} >
-            {Images.Viewed.map((img, index) => (
-              <Block key={`viewed-${img}`} style={styles.shadow}>
-                <Image
-                  resizeMode="cover"
-                  source={{ uri: img }}
-                  style={styles.albumThumb}
-                />
-              </Block>
-            ))}
-          </Block>
-        </Block>
-      </Block>
-    )
-  }
-
   render() {
     return (
-      <Block flex center>
-        <ScrollView
-          style={styles.components}
-          showsVerticalScrollIndicator={false}>
-            {this.renderButtons()}
-            {this.renderText()}
-            {this.renderInputs()}
-            {this.renderSwitches()}
-            {this.renderTableCell()}
-            {this.renderNavigation()}
-            {this.renderSocial()}
-            {this.renderCards()}
-            {this.renderAlbum()}
-        </ScrollView>
-      </Block>
+      <Container>
+        <Header>
+          <Text style={styles.title}>REGISTRAR INGRESO</Text>
+        </Header>
+        <Content>
+          <Form>
+            <Text style={styles.space}></Text>
+            <Item>
+              <Label>Fecha</Label>
+              <DatePicker
+                defaultDate={new Date(2018, 4, 4)}
+                minimumDate={new Date(2000, 1, 1)}
+                maximumDate={new Date(2100, 12, 31)}
+                locale={"es"}
+                timeZoneOffsetInMinutes={undefined}
+                modalTransparent={false}
+                animationType={"fade"}
+                androidMode={"default"}
+                placeHolderText="Elegir fecha"
+                textStyle={{ color: "green" }}
+                placeHolderTextStyle={{ color: "#d3d3d3" }}
+                onDateChange={this.setDate}
+                disabled={false}
+              />
+            </Item>
+            <Item stackedLabel>
+              <Label>Cantidad</Label>
+              <Input />
+            </Item>
+            <Item>
+              <Label>Frecuencia del Ingreso</Label>
+              <Picker
+                mode="dropdown"
+                iosIcon={<Icon name="arrow-down" />}
+                style={{ width: undefined }}
+                placeholder="Frecuencia del Ingreso"
+                placeholderStyle={{ color: "#bfc6ea" }}
+                placeholderIconColor="#007aff"
+              >
+                <Picker.Item label="Mensual" value="mensual" />
+                <Picker.Item label="Semanal" value="semanal" />
+                <Picker.Item label="Diario" value="diario" />
+                <Picker.Item label="Una sola vez" value="onetime" />
+              </Picker>
+            </Item>
+
+            <Item>
+              <Label>Origen</Label>
+              <Picker
+                mode="dropdown"
+                iosIcon={<Icon name="arrow-down" />}
+                style={{ width: undefined }}
+                placeholder="Origen del Ingreso"
+                placeholderStyle={{ color: "#bfc6ea" }}
+                placeholderIconColor="#007aff"
+              >
+                <Picker.Item
+                  label="Sueldo en Relación de Dependencia"
+                  value="sueldo_relacion_dependencia"
+                />
+                <Picker.Item
+                  label="Alquiler de Propiedad"
+                  value="alquiler_propiedad"
+                />
+                <Picker.Item
+                  label="Facturación como Autónomo"
+                  value="facturacion_autonomo"
+                />
+                <Picker.Item label="Extraordinario" value="extraordinario" />
+                <Picker.Item label="Otros" value="otros" />
+              </Picker>
+            </Item>
+            <Item>
+              <Label>Destino</Label>
+              <Picker
+                mode="dropdown"
+                iosIcon={<Icon name="arrow-down" />}
+                style={{ width: undefined }}
+                placeholder="Origen del Ingreso"
+                placeholderStyle={{ color: "#bfc6ea" }}
+                placeholderIconColor="#007aff"
+              >
+                <Picker.Item
+                  label="Cuenta Bancaria #1"
+                  value="cuenta_bancaria_1"
+                />
+                <Picker.Item
+                  label="Cuenta Bancaria #2"
+                  value="cuenta_bancaria_2"
+                />
+                <Picker.Item
+                  label="Cuenta Bancaria #3"
+                  value="cuenta_bancaria_3"
+                />
+                <Picker.Item label="Efectivo" value="efectivo" />
+              </Picker>
+            </Item>
+            <Text style={styles.space}></Text>
+            <Button
+              block
+              primary
+              onPress={() => Alert.alert("Guardar clicked")}
+            >
+              <Text>Guardar</Text>
+            </Button>
+            <Button
+              block
+              bordered
+              light
+              onPress={() => Alert.alert("Cancelar clicked")}
+            >
+              <Text>Cancelar</Text>
+            </Button>
+          </Form>
+        </Content>
+        <Footer />
+      </Container>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  components: {
-  },
+  components: {},
   title: {
     paddingVertical: theme.SIZES.BASE,
     paddingHorizontal: theme.SIZES.BASE * 2,
+    color: theme.COLORS.WHITE,
+    fontWeight: "bold",
   },
   group: {
     paddingTop: theme.SIZES.BASE * 3.75,
   },
   shadow: {
-    shadowColor: 'black',
+    shadowColor: "black",
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     shadowOpacity: 0.2,
@@ -349,17 +177,17 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: theme.SIZES.BASE,
-    width: width - (theme.SIZES.BASE * 2),
+    width: width - theme.SIZES.BASE * 2,
   },
   optionsText: {
     fontSize: theme.SIZES.BASE * 0.75,
-    color: '#4A4A4A',
+    color: "#4A4A4A",
     fontWeight: "normal",
     fontStyle: "normal",
     letterSpacing: -0.29,
   },
   optionsButton: {
-    width: 'auto',
+    width: "auto",
     height: 34,
     paddingHorizontal: theme.SIZES.BASE,
     paddingVertical: 10,
@@ -389,7 +217,7 @@ const styles = StyleSheet.create({
     borderBottomColor: materialTheme.COLORS.ERROR,
   },
   imageBlock: {
-    overflow: 'hidden',
+    overflow: "hidden",
     borderRadius: 4,
   },
   rows: {
@@ -399,7 +227,7 @@ const styles = StyleSheet.create({
     width: theme.SIZES.BASE * 3.5,
     height: theme.SIZES.BASE * 3.5,
     borderRadius: theme.SIZES.BASE * 1.75,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   category: {
     backgroundColor: theme.COLORS.WHITE,
@@ -407,17 +235,22 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   categoryTitle: {
-    height: '100%',
+    height: "100%",
     paddingHorizontal: theme.SIZES.BASE,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   albumThumb: {
     borderRadius: 4,
     marginVertical: 4,
-    alignSelf: 'center',
+    alignSelf: "center",
     width: thumbMeasure,
-    height: thumbMeasure
+    height: thumbMeasure,
+  },
+  space: {
+    color: "#C0C0C0",
+    fontSize: 15,
+    textAlign: "justify",
   },
 });
