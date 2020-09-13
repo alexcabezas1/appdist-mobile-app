@@ -10,6 +10,7 @@ import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SwipeListView } from "react-native-swipe-list-view";
 import RegistrarIngreso from "./IngresosRegistrar";
+import { ConfirmDialog } from "react-native-simple-dialogs";
 
 const IngresosScreen = ({ navigation, props }) => {
   return (
@@ -34,7 +35,7 @@ const ListaIngresos = (props) => {
       title: "Mensual",
       data: [
         {
-          key: 1,
+          key: "mensual.1",
           cantidad: 145000000.5,
           origen: "Facturación como Autónomo",
           destino: "HSBC 85945849584989",
@@ -42,7 +43,7 @@ const ListaIngresos = (props) => {
           creado_en: "03/04/2020",
         },
         {
-          key: 2,
+          key: "mensual.2",
           cantidad: 32000.0,
           origen: "Alquiler de Propiedad",
           destino: "HSBC 85945849584989",
@@ -50,7 +51,7 @@ const ListaIngresos = (props) => {
           creado_en: "03/04/2020",
         },
         {
-          key: 3,
+          key: "mensual.3",
           cantidad: 900000,
           origen: "Sueldo en Relacion de Dependencia",
           destino: "HSBC 85945849584989",
@@ -63,7 +64,7 @@ const ListaIngresos = (props) => {
       title: "Semanal",
       data: [
         {
-          key: 4,
+          key: "semanal.4",
           cantidad: 145000000.5,
           origen: "Sueldo en Relacion de Dependencia",
           destino: "HSBC 85945849584989",
@@ -71,7 +72,7 @@ const ListaIngresos = (props) => {
           creado_en: "03/04/2020",
         },
         {
-          key: 5,
+          key: "semanal.5",
           cantidad: 32000.0,
           origen: "Sueldo en Relacion de Dependencia",
           destino: "HSBC 85945849584989",
@@ -84,7 +85,7 @@ const ListaIngresos = (props) => {
       title: "Diario",
       data: [
         {
-          key: 4,
+          key: "diario.6",
           cantidad: 5000,
           origen: "Extraordinario",
           destino: "HSBC 85945849584989",
@@ -92,7 +93,7 @@ const ListaIngresos = (props) => {
           creado_en: "03/04/2020",
         },
         {
-          key: 5,
+          key: "diario.7",
           cantidad: 4000.0,
           origen: "Otros",
           destino: "HSBC 85945849584989",
@@ -103,6 +104,8 @@ const ListaIngresos = (props) => {
     },
   ];
   const [listData, setListData] = useState(data);
+  const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
+  const [itemToBeDelete, setItemToBeDelete] = useState({});
 
   const B = (props) => (
     <Text style={{ fontWeight: "bold" }}>{props.children}</Text>
@@ -114,11 +117,18 @@ const ListaIngresos = (props) => {
     }
   };
 
-  const deleteRow = (rowMap, rowKey) => {
+  const deleteRow = ({ rowMap, rowKey }) => {
+    setConfirmDialogVisible(false);
     closeRow(rowMap, rowKey);
+    const [section] = rowKey.split(".");
     const newData = [...listData];
-    const prevIndex = listData.findIndex((item) => item.key === rowKey);
-    newData.splice(prevIndex, 1);
+    const sectionIndex = listData.findIndex(
+      (item) => item.title.toLowerCase() == section
+    );
+    const prevIndex = listData[sectionIndex].data.findIndex(
+      (item) => item.key === rowKey
+    );
+    newData[sectionIndex].data.splice(prevIndex, 1);
     setListData(newData);
   };
 
@@ -164,7 +174,10 @@ const ListaIngresos = (props) => {
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnRight]}
-        onPress={() => deleteRow(rowMap, data.item.key)}
+        onPress={() => {
+          setItemToBeDelete({ rowMap, rowKey: data.item.key });
+          setConfirmDialogVisible(true);
+        }}
       >
         <Icon color="white" size={30} name="trash-can-outline" />
       </TouchableOpacity>
@@ -175,8 +188,28 @@ const ListaIngresos = (props) => {
     <Text style={styles.sectionTitle}>{section.title}</Text>
   );
 
+  const confirmDelete = (props) => (
+    <ConfirmDialog
+      title="Confirmación de la Operación"
+      message="¿Está seguro que quieres borrar el ingreso?"
+      visible={confirmDialogVisible}
+      onTouchOutside={() => setConfirmDialogVisible(false)}
+      positiveButton={{
+        title: "Sí",
+        onPress: () => {
+          deleteRow(itemToBeDelete);
+        },
+      }}
+      negativeButton={{
+        title: "No",
+        onPress: () => setConfirmDialogVisible(false),
+      }}
+    />
+  );
+
   return (
     <View style={styles.container}>
+      {confirmDelete()}
       <SwipeListView
         useSectionList
         sections={listData}
