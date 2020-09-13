@@ -6,11 +6,30 @@ import {
   TouchableHighlight,
   View,
 } from "react-native";
+import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SwipeListView } from "react-native-swipe-list-view";
+import RegistrarIngreso from "./IngresosRegistrar";
 
-export default function ListaIngresos() {
-  const [listData, setListData] = useState([
+const IngresosScreen = ({ navigation, props }) => {
+  return (
+    <Container>
+      <Content>
+        <Button
+          block
+          primary
+          onPress={() => navigation.navigate("NuevoIngreso")}
+        >
+          <Text style={styles.homeButton}>+ Nuevo Ingreso</Text>
+        </Button>
+        <ListaIngresos />
+      </Content>
+    </Container>
+  );
+};
+
+const ListaIngresos = (props) => {
+  const data = [
     {
       title: "Mensual",
       data: [
@@ -82,7 +101,8 @@ export default function ListaIngresos() {
         },
       ],
     },
-  ]);
+  ];
+  const [listData, setListData] = useState(data);
 
   const B = (props) => (
     <Text style={{ fontWeight: "bold" }}>{props.children}</Text>
@@ -129,8 +149,12 @@ export default function ListaIngresos() {
   const renderHiddenItem = (data, rowMap) => (
     <View style={styles.rowBack}>
       <View>
+        <Text style={{ paddingBottom: 5 }}>
+          <Text>ARS </Text>
+          <B>{data.item.cantidad}</B>
+        </Text>
         <Text>Registrado el:</Text>
-        <Text>03/05/2020</Text>
+        <Text>{data.item.creado_en}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
@@ -169,7 +193,7 @@ export default function ListaIngresos() {
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -225,4 +249,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "#4f73f2",
     borderBottomWidth: 1,
   },
+  homeButton: {
+    color: "white",
+    fontSize: 18,
+  },
 });
+
+export default IngresosScreen;
+export { RegistrarIngreso };

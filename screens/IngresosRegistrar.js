@@ -25,14 +25,12 @@ const { width } = Dimensions.get("screen");
 
 const thumbMeasure = (width - 48 - 32) / 3;
 
-export default function RegistrarIngreso() {
+export default function RegistrarIngreso({ navigation, props }) {
   const [chosenDate, setDate] = useState(new Date());
 
   return (
     <Container>
-      <Header>
-        <Text style={styles.title}>REGISTRAR INGRESO</Text>
-      </Header>
+      <Header />
       <Content>
         <Form>
           <Text style={styles.space}></Text>
@@ -133,7 +131,7 @@ export default function RegistrarIngreso() {
             block
             bordered
             light
-            onPress={() => Alert.alert("Cancelar clicked")}
+            onPress={() => navigation.navigate("Ingresos")}
           >
             <Text>Cancelar</Text>
           </Button>
