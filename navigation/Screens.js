@@ -15,6 +15,7 @@ import IngresosScreen, { RegistrarIngreso } from "../screens/Ingresos";
 import EgresosScreen from "../screens/Egresos";
 import TarjetasScreen from "../screens/Tarjetas";
 import CuentasBancariasScreen from "../screens/CuentasBancarias";
+import CuentasRegistrarScreen from "../screens/CuentasRegistrar";
 import InversionesScreen from "../screens/Inversiones";
 import PrestamosScreen from "../screens/Prestamos";
 import PresupuestosScreen from "../screens/Presupuestos";
@@ -120,6 +121,30 @@ function CuentasBancariasStack(props) {
           header: ({ navigation, scene }) => (
             <Header
               title="Cuentas Bancarias"
+              scene={scene}
+              navigation={navigation}
+            />
+          ),
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function CuentasRegistrarStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="CuentasRegistrar"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Registrar Cuentas"
+        component={CuentasRegistrarScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title="Registrar Cuentas"
               scene={scene}
               navigation={navigation}
             />
@@ -383,6 +408,20 @@ function AppStack(props) {
       <Drawer.Screen
         name="CuentasBancarias"
         component={CuentasBancariasStack}
+        options={{
+          drawerIcon: ({ focused }) => (
+            <Icon
+              size={16}
+              name="circle-10"
+              family="GalioExtra"
+              color={focused ? "white" : materialTheme.COLORS.MUTED}
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="CuentasRegistrar"
+        component={CuentasRegistrarStack}
         options={{
           drawerIcon: ({ focused }) => (
             <Icon

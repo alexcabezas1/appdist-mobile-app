@@ -21,7 +21,7 @@ function CustomDrawerContent({
     "Ingresos",
     "Egresos",
     "Tarjetas",
-    "Cuentas Bancarias",
+    "CuentasBancarias",
     "Inversiones",
     "Prestamos",
     "Presupuestos",
