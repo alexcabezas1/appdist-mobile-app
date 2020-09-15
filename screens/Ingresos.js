@@ -9,8 +9,10 @@ import {
 import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SwipeListView } from "react-native-swipe-list-view";
-import RegistrarIngreso from "./IngresosRegistrar";
+import RegistrarIngresoScreen from "./IngresosRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
+import { listStyles } from "./shared/styles";
+import { B } from "./shared/common";
 
 const IngresosScreen = ({ navigation, props }) => {
   return (
@@ -107,10 +109,6 @@ const ListaIngresos = (props) => {
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [itemToBeDelete, setItemToBeDelete] = useState({});
 
-  const B = (props) => (
-    <Text style={{ fontWeight: "bold" }}>{props.children}</Text>
-  );
-
   const closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
       rowMap[rowKey].closeRow();
@@ -139,12 +137,10 @@ const ListaIngresos = (props) => {
   const renderItem = (data) => (
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
-        <View style={{ width: 150 }}>
-          <Text style={{ paddingBottom: 5 }}>
-            <Text>ARS </Text>
-            <B>{data.item.cantidad}</B>
-          </Text>
-          <Text>Recibido el: {data.item.recibido_en}</Text>
+        <View style={{ width: 140 }}>
+          <Text>ARS </Text>
+          <B style={{ paddingBottom: 5 }}>{data.item.cantidad}</B>
+          <Text style={{ paddingBottom: 5 }}>{data.item.recibido_en}</Text>
         </View>
         <View style={{ width: 250 }}>
           <B>Origen:</B>
@@ -159,10 +155,6 @@ const ListaIngresos = (props) => {
   const renderHiddenItem = (data, rowMap) => (
     <View style={styles.rowBack}>
       <View>
-        <Text style={{ paddingBottom: 5 }}>
-          <Text>ARS </Text>
-          <B>{data.item.cantidad}</B>
-        </Text>
         <Text>Registrado el:</Text>
         <Text>{data.item.creado_en}</Text>
       </View>
@@ -222,71 +214,25 @@ const ListaIngresos = (props) => {
         previewOpenValue={-40}
         previewOpenDelay={3000}
         onRowDidOpen={onRowDidOpen}
-        minHeight={100}
+        minHeight={110}
       />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "white",
-    flex: 1,
-  },
-  backTextWhite: {
-    color: "#FFF",
-  },
+const styles = {
+  ...listStyles,
   rowFront: {
     alignItems: "flex-start",
     backgroundColor: "white",
     borderBottomColor: "#4f73f2",
     borderBottomWidth: 1,
     justifyContent: "center",
-    height: 100,
+    height: 110,
     paddingLeft: 15,
     paddingRight: 15,
   },
-  rowBack: {
-    alignItems: "center",
-    backgroundColor: "#DDD",
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingLeft: 15,
-  },
-  backRightBtn: {
-    alignItems: "center",
-    bottom: 0,
-    justifyContent: "center",
-    position: "absolute",
-    top: 0,
-    width: 75,
-  },
-  backRightBtnLeft: {
-    backgroundColor: "#4f73f2",
-    right: 75,
-  },
-  backRightBtnRight: {
-    backgroundColor: "#d84343",
-    right: 0,
-  },
-  item: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  sectionTitle: {
-    fontSize: 20,
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingLeft: 5,
-    borderBottomColor: "#4f73f2",
-    borderBottomWidth: 1,
-  },
-  homeButton: {
-    color: "white",
-    fontSize: 18,
-  },
-});
+};
 
 export default IngresosScreen;
-export { RegistrarIngreso };
+export { RegistrarIngresoScreen };

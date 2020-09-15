@@ -11,8 +11,8 @@ import OnboardingScreen from "../screens/Onboarding";
 import ProfileScreen from "../screens/Profile";
 import ProScreen from "../screens/Pro";
 import SettingsScreen from "../screens/Settings";
-import IngresosScreen, { RegistrarIngreso } from "../screens/Ingresos";
-import RegistrarEgreso from "../screens/EgresosRegistrar";
+import IngresosScreen, { RegistrarIngresoScreen } from "../screens/Ingresos";
+import EgresosScreen, { RegistrarEgresoScreen } from "../screens/Egresos";
 import TarjetasScreen from "../screens/Tarjetas";
 import CuentasBancariasScreen from "../screens/CuentasBancarias";
 import CuentasRegistrarScreen from "../screens/CuentasRegistrar";
@@ -56,7 +56,7 @@ function IngresosStack(props) {
       />
       <Stack.Screen
         name="NuevoIngreso"
-        component={RegistrarIngreso}
+        component={RegistrarIngresoScreen}
         options={{
           header: ({ navigation, scene }) => (
             <Header
@@ -76,10 +76,23 @@ function EgresosStack(props) {
     <Stack.Navigator initialRouteName="Egresos" mode="card" headerMode="screen">
       <Stack.Screen
         name="Egresos"
-        component={RegistrarEgreso}
+        component={EgresosScreen}
         options={{
           header: ({ navigation, scene }) => (
             <Header title="Egresos" scene={scene} navigation={navigation} />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="NuevoEgreso"
+        component={RegistrarEgresoScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title="Egresos / Nuevo Egreso"
+              scene={scene}
+              navigation={navigation}
+            />
           ),
         }}
       />
@@ -115,7 +128,7 @@ function CuentasBancariasStack(props) {
       headerMode="screen"
     >
       <Stack.Screen
-        name="Cuentas Bancarias"
+        name="CuentasBancarias"
         component={CuentasBancariasScreen}
         options={{
           header: ({ navigation, scene }) => (
@@ -127,24 +140,13 @@ function CuentasBancariasStack(props) {
           ),
         }}
       />
-    </Stack.Navigator>
-  );
-}
-
-function CuentasRegistrarStack(props) {
-  return (
-    <Stack.Navigator
-      initialRouteName="CuentasRegistrar"
-      mode="card"
-      headerMode="screen"
-    >
       <Stack.Screen
-        name="Registrar Cuentas"
+        name="RegistrarCuenta"
         component={CuentasRegistrarScreen}
         options={{
           header: ({ navigation, scene }) => (
             <Header
-              title="Registrar Cuentas"
+              title="Cuentas Bancarias / Registrar Cuenta"
               scene={scene}
               navigation={navigation}
             />
@@ -406,22 +408,8 @@ function AppStack(props) {
         }}
       />
       <Drawer.Screen
-        name="CuentasBancarias"
+        name="Cuentas Bancarias"
         component={CuentasBancariasStack}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="circle-10"
-              family="GalioExtra"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="CuentasRegistrar"
-        component={CuentasRegistrarStack}
         options={{
           drawerIcon: ({ focused }) => (
             <Icon

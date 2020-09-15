@@ -19,7 +19,7 @@ const CuentasScreen = ({ navigation, props }) => {
         <Button
           block
           primary
-          onPress={() => navigation.navigate("CuentasRegistrar")}
+          onPress={() => navigation.navigate("RegistrarCuenta")}
         >
           <Text style={styles.homeButton}>+ Nueva Cuenta Bancaria</Text>
         </Button>
@@ -98,10 +98,13 @@ const ListaCuentas = (props) => {
           <Text style={{ paddingBottom: 0 }}>
             <B>{data.item.banco}</B>
           </Text>
-          <Text>{"#"}{data.item.nroCuenta}</Text>
+          <Text>
+            {"#"}
+            {data.item.nroCuenta}
+          </Text>
         </View>
         <View style={{ width: 150 }}>
-        <B>{data.item.type}</B>
+          <B>{data.item.type}</B>
           <Text>{data.item.cc}</Text>
         </View>
       </View>

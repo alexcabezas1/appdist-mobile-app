@@ -30,9 +30,10 @@ export default function RegistrarEgreso({ navigation, props }) {
     "transferencia",
     "mercadopago",
   ];
+
   const initialValues = {
     cantidad: "0.0",
-    motivo_del_pago: "alquiler",
+    motivo_del_gasto: "alquiler",
     medio_de_pago: "de_contado",
     cuotas_prestamo_por_vencer: "no_aplica",
     numero_de_cuotas: "1",
@@ -40,13 +41,14 @@ export default function RegistrarEgreso({ navigation, props }) {
     tarjeta: "no_aplica",
     cuenta_bancaria: "no_aplica",
   };
+
   const validationSchema = Yup.object({
     cantidad: Yup.number()
       .typeError("debe ser un número")
       .min(1, "debe ser mayor a 0")
       .max(999999999, "cifra no permitida")
       .required("es requerida"),
-    cuotas_prestamo_por_vencer: Yup.string().when("motivo_del_pago", {
+    cuotas_prestamo_por_vencer: Yup.string().when("motivo_del_gasto", {
       is: "cuota_de_prestamo",
       then: Yup.string().test("required", "*", (v) => v != "no_aplica"),
       otherwise: Yup.string().notRequired(),
@@ -78,13 +80,13 @@ export default function RegistrarEgreso({ navigation, props }) {
     <Container>
       <Header>
         <Left>
-          <Button transparent onPress={() => navigation.navigate("Ingresos")}>
+          <Button transparent onPress={() => navigation.navigate("Egresos")}>
             <Icon name="arrow-back" />
             <Text>Volver</Text>
           </Button>
         </Left>
         <Right>
-          <Button transparent onPress={() => navigation.navigate("Ingresos")}>
+          <Button transparent onPress={() => navigation.navigate("Egresos")}>
             <Text>Cancelar</Text>
           </Button>
         </Right>
@@ -122,17 +124,17 @@ export default function RegistrarEgreso({ navigation, props }) {
                 />
               </Item>
               <Item>
-                <Label>Motivo del Pago</Label>
+                <Label>Motivo del Gasto</Label>
                 <Picker
-                  name="motivo_del_pago"
+                  name="motivo_del_gasto"
                   mode="dropdown"
                   iosIcon={<Icon name="arrow-down" />}
                   style={{ width: undefined, color: "#5073F3" }}
                   placeholder="Motivo del Egreso"
                   placeholderStyle={{ color: "#bfc6ea" }}
                   placeholderIconColor="#007aff"
-                  selectedValue={values.motivo_del_pago}
-                  onValueChange={(v) => setFieldValue("motivo_del_pago", v)}
+                  selectedValue={values.motivo_del_gasto}
+                  onValueChange={(v) => setFieldValue("motivo_del_gasto", v)}
                 >
                   <Picker.Item label="Alquiler" value="alquiler" />
                   <Picker.Item label="Expensas" value="expensas" />
@@ -190,11 +192,19 @@ export default function RegistrarEgreso({ navigation, props }) {
                   />
                   <Picker.Item label="Regalo" value="regalo" />
                   <Picker.Item label="Donación" value="donacion" />
+                  <Picker.Item
+                    label="Compra de Dólares"
+                    value="compra_dolares"
+                  />
+                  <Picker.Item
+                    label="Compra de Criptomonedas"
+                    value="compra_criptomonedas"
+                  />
                   <Picker.Item label="Extraordinario" value="Extraordinario" />
                   <Picker.Item label="Otro" value="otro" />
                 </Picker>
               </Item>
-              {values.motivo_del_pago === "cuota_de_prestamo" && (
+              {values.motivo_del_gasto === "cuota_de_prestamo" && (
                 <Item>
                   <Label>Cuotas de Prestamos</Label>
                   <ErrorMessage

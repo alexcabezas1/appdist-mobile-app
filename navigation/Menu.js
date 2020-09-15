@@ -1,11 +1,15 @@
 import React from "react";
-import { TouchableWithoutFeedback, ScrollView, StyleSheet, Image } from "react-native";
+import {
+  TouchableWithoutFeedback,
+  ScrollView,
+  StyleSheet,
+  Image,
+} from "react-native";
 import { Block, Text, theme } from "galio-framework";
 import { useSafeArea } from "react-native-safe-area-context";
 
-import { Icon, Drawer as DrawerCustomItem } from '../components/';
+import { Icon, Drawer as DrawerCustomItem } from "../components/";
 import { Images, materialTheme } from "../constants/";
-
 
 function CustomDrawerContent({
   drawerPosition,
@@ -21,13 +25,13 @@ function CustomDrawerContent({
     "Ingresos",
     "Egresos",
     "Tarjetas",
-    "CuentasBancarias",
+    "Cuentas Bancarias",
     "Inversiones",
     "Prestamos",
     "Presupuestos",
     "Profile",
     "Settings",
-    "Components"
+    "Components",
   ];
   return (
     <Block
@@ -51,8 +55,8 @@ function CustomDrawerContent({
             {
               paddingTop: insets.top * 0.4,
               paddingLeft: drawerPosition === "left" ? insets.left : 0,
-              paddingRight: drawerPosition === "right" ? insets.right : 0
-            }
+              paddingRight: drawerPosition === "right" ? insets.right : 0,
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -79,23 +83,22 @@ function CustomDrawerContent({
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#4B1958',
+    backgroundColor: "#4B1958",
     paddingHorizontal: 28,
     paddingBottom: theme.SIZES.BASE,
     paddingTop: theme.SIZES.BASE * 2,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   footer: {
-    backgroundColor: '#4B1958',
+    backgroundColor: "#4B1958",
 
     paddingHorizontal: 10,
-    justifyContent: 'flex-end'
+    justifyContent: "flex-end",
   },
 });
 
