@@ -66,30 +66,8 @@ export default function CuentasRegistrar({ navigation, props }) {
           }) => (
             <Form>
               <Text style={styles.space}></Text>
-              <Item stackedLabel>
-                <Label>Banco</Label>
-                <Input
-                  name="banco"
-                  keyboardType="default"
-                  style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("banco")}
-                  onBlur={handleBlur("banco")}
-                  value={values.banco}
-                />
-              </Item>
               <Item>
-                <Label>Numero de cuenta</Label>
-                <Input
-                  name="nroCuenta"
-                  keyboardType="default"
-                  style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("nroCuenta")}
-                  onBlur={handleBlur("nroCuenta")}
-                  value={values.numero_cuenta}
-                />
-              </Item>
-              <Item>
-                <Label>Tipo de cuenta (CBU/CVU)</Label>
+                <Label>Banco: </Label>
                 <Picker
                   name="frecuencia"
                   mode="dropdown"
@@ -101,10 +79,29 @@ export default function CuentasRegistrar({ navigation, props }) {
                   selectedValue={values.frecuencia}
                   onValueChange={(v) => setFieldValue("frecuencia", v)}
                 >
-                  <Picker.Item label="CBU" value="cbu" />
-                  <Picker.Item label="CVU" value="cvu" />
+                  <Picker.Item label="Nación" value="nacion" />
+                  <Picker.Item label="Santander Río" value="santander" />
+                  <Picker.Item label="Galicia" value="galicia" />
+                  <Picker.Item label="Provincia" value="provincia" />
+                  <Picker.Item label="HSBC" value="hsbc" />
+                  <Picker.Item label="CitiBank" value="citibank" />
+                  <Picker.Item label="Comafi" value="comafi" />
+                  <Picker.Item label="MercadoPago" value="mercadopago" />
+
                 </Picker>
               </Item>
+              <Item>
+                <Label>Numero de cuenta</Label>
+                <Input
+                  name="nroCuenta"
+                  keyboardType="numeric"
+                  style={{ color: "#5073F3" }}
+                  onChangeText={handleChange("nroCuenta")}
+                  onBlur={handleBlur("nroCuenta")}
+                  value={values.numero_cuenta}
+                />
+              </Item>
+
               <Item>
                 <Label>CBU/CVU:</Label>
                 <Input
