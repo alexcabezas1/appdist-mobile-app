@@ -12,7 +12,7 @@ import ProfileScreen from "../screens/Profile";
 import ProScreen from "../screens/Pro";
 import SettingsScreen from "../screens/Settings";
 import IngresosScreen, { RegistrarIngreso } from "../screens/Ingresos";
-import EgresosScreen from "../screens/Egresos";
+import RegistrarEgreso from "../screens/EgresosRegistrar";
 import TarjetasScreen from "../screens/Tarjetas";
 import CuentasBancariasScreen from "../screens/CuentasBancarias";
 import CuentasRegistrarScreen from "../screens/CuentasRegistrar";
@@ -60,7 +60,7 @@ function IngresosStack(props) {
         options={{
           header: ({ navigation, scene }) => (
             <Header
-              title="Nuevo Ingreso"
+              title="Ingresos / Nuevo Ingreso"
               scene={scene}
               navigation={navigation}
             />
@@ -76,7 +76,7 @@ function EgresosStack(props) {
     <Stack.Navigator initialRouteName="Egresos" mode="card" headerMode="screen">
       <Stack.Screen
         name="Egresos"
-        component={EgresosScreen}
+        component={RegistrarEgreso}
         options={{
           header: ({ navigation, scene }) => (
             <Header title="Egresos" scene={scene} navigation={navigation} />
