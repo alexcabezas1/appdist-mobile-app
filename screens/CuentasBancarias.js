@@ -50,7 +50,7 @@ const ListaCuentas = (props) => {
         },
         {
           key: "cuenta.3",
-          banco: "Banco Nación",
+          banco: "MercadoPago",
           nroCuenta: "4-127155030-17",
           type: "CVU",
           cc: "111574792125490",
@@ -94,15 +94,14 @@ const ListaCuentas = (props) => {
   const renderItem = (data) => (
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
-        <View style={{ width: 150 }}>
-          <Text style={{ paddingBottom: 5 }}>
+        <View style={{ width: 160 }}>
+          <Text style={{ paddingBottom: 0 }}>
             <B>{data.item.banco}</B>
           </Text>
+          <Text>{"#"}{data.item.nroCuenta}</Text>
         </View>
-        <View style={{ width: 250 }}>
-          <B>Cuenta número:</B>
-          <Text>{data.item.nroCuenta}</Text>
-          <B>{data.item.type}</B>
+        <View style={{ width: 150 }}>
+        <B>{data.item.type}</B>
           <Text>{data.item.cc}</Text>
         </View>
       </View>
@@ -193,8 +192,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     justifyContent: "center",
     height: 100,
-    paddingLeft: 15,
-    paddingRight: 15,
+    paddingLeft: 60,
+    paddingRight: 50,
   },
   rowBack: {
     alignItems: "center",
@@ -228,7 +227,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     paddingTop: 5,
     paddingBottom: 5,
-    paddingLeft: 5,
+    paddingLeft: 10,
     borderBottomColor: "#4f73f2",
     borderBottomWidth: 1,
   },
