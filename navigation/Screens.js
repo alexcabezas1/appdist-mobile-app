@@ -16,7 +16,9 @@ import EgresosScreen, { RegistrarEgresoScreen } from "../screens/Egresos";
 import TarjetasScreen from "../screens/Tarjetas";
 import CuentasBancariasScreen from "../screens/CuentasBancarias";
 import CuentasRegistrarScreen from "../screens/CuentasRegistrar";
-import InversionesScreen from "../screens/Inversiones";
+import InversionesScreen, {
+  RegistrarInversionScreen,
+} from "../screens/Inversiones";
 import PrestamosScreen from "../screens/Prestamos";
 import PresupuestosScreen from "../screens/Presupuestos";
 
@@ -170,6 +172,19 @@ function InversionesStack(props) {
         options={{
           header: ({ navigation, scene }) => (
             <Header title="Inversiones" scene={scene} navigation={navigation} />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="NuevaInversion"
+        component={RegistrarInversionScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title="Inversiones / Registrar Inversion"
+              scene={scene}
+              navigation={navigation}
+            />
           ),
         }}
       />
