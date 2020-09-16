@@ -13,7 +13,7 @@ import ProScreen from "../screens/Pro";
 import SettingsScreen from "../screens/Settings";
 import IngresosScreen, { RegistrarIngresoScreen } from "../screens/Ingresos";
 import EgresosScreen, { RegistrarEgresoScreen } from "../screens/Egresos";
-import TarjetasScreen from "../screens/Tarjetas";
+import TarjetasScreen, {RegistrarTarjetaScreen} from "../screens/Tarjetas";
 import CuentasBancariasScreen from "../screens/CuentasBancarias";
 import CuentasRegistrarScreen from "../screens/CuentasRegistrar";
 import InversionesScreen, {
@@ -115,6 +115,19 @@ function TarjetasStack(props) {
         options={{
           header: ({ navigation, scene }) => (
             <Header title="Tarjetas" scene={scene} navigation={navigation} />
+          ),
+        }}
+      />
+            <Stack.Screen
+        name="NuevaTarjeta"
+        component={RegistrarTarjetaScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title="Tarjetas / Nueva Tarjeta"
+              scene={scene}
+              navigation={navigation}
+            />
           ),
         }}
       />
