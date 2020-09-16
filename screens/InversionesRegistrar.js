@@ -28,18 +28,18 @@ export default function RegistrarInversion({ navigation, props }) {
     "bono",
     "otro",
   ];
-  const inversiones_con_interes = ["plazo_fijo"];
+  const inversiones_con_interes = ["plazo_fijo", "bono"];
   const initialValues = {
     tipo_inversion: "accion",
     capital_invertido: "0.0",
     tasa_interes: "0.0",
     cantidad_adquirida: "1",
-    fecha_vencimiento: undefined,
+    fecha_vencimiento: undefined, // requerido para plazo fijo, bono
     acreditar_en: "hsbc_bank_9085978549584",
     debitar_de: "hsbc_bank_9085978549584",
     fecha_transaccion: undefined,
     descripcion: "",
-    intermediario: "",
+    intermediario: "", // requerido para accion, bono, titulo
   };
 
   const validationSchema = Yup.object({
@@ -66,10 +66,18 @@ export default function RegistrarInversion({ navigation, props }) {
         .required("es requerido"),
       otherwise: Yup.number().notRequired(),
     }),
-    fecha_vencimiento: Yup.date().required("*"),
+    fecha_vencimiento: Yup.date().when("tipo_inversion", {
+      is: (v) => inversiones_con_interes.includes(v),
+      then: Yup.date().required("*"),
+      otherwise: Yup.date().notRequired(),
+    }),
     fecha_transaccion: Yup.date().required("*"),
     descripcion: Yup.string().required("*"),
-    intermediario: Yup.string().required("*"),
+    intermediario: Yup.string().when("tipo_inversion", {
+      is: (v) => inversiones_con_cantidad_adquirida.includes(v),
+      then: Yup.string().required("*"),
+      otherwise: Yup.string().notRequired(),
+    }),
   });
 
   return (
@@ -137,6 +145,23 @@ export default function RegistrarInversion({ navigation, props }) {
                 </Picker>
               </Item>
               <Item>
+                <Label>
+                  Descripción{" "}
+                  <ErrorMessage
+                    component={Label}
+                    name="descripcion"
+                    style={styles.errorInput}
+                  />
+                </Label>
+                <Input
+                  name="descripcion"
+                  style={{ color: "#5073F3" }}
+                  onChangeText={handleChange("descripcion")}
+                  onBlur={handleBlur("descripcion")}
+                  value={values.descripcion}
+                />
+              </Item>
+              <Item>
                 <Label>Capital Invertido</Label>
                 <Input
                   name="capital_invertido"
@@ -147,7 +172,7 @@ export default function RegistrarInversion({ navigation, props }) {
                   value={values.capital_invertido}
                 />
               </Item>
-              <Item>
+              <Item style={styles.noBorder}>
                 <ErrorMessage
                   component={Label}
                   name="capital_invertido"
@@ -196,30 +221,32 @@ export default function RegistrarInversion({ navigation, props }) {
                   style={styles.errorInput}
                 />
               </Item>
-              <Item>
-                <Label>Vence en</Label>
-                <ErrorMessage
-                  component={Label}
-                  name="fecha_vencimiento"
-                  style={styles.errorInput}
-                />
-                <DatePicker
-                  name="fecha_vencimiento"
-                  defaultDate={values.fecha_vencimiento}
-                  minimumDate={new Date(2000, 1, 1)}
-                  maximumDate={new Date(2100, 12, 31)}
-                  locale={"es"}
-                  timeZoneOffsetInMinutes={undefined}
-                  modalTransparent={false}
-                  animationType={"fade"}
-                  androidMode={"default"}
-                  placeHolderText="Elegir fecha"
-                  textStyle={{ color: "#5073F3" }}
-                  placeHolderTextStyle={{ color: "#d3d3d3" }}
-                  onDateChange={(v) => setFieldValue("fecha_vencimiento", v)}
-                  disabled={false}
-                />
-              </Item>
+              {inversiones_con_interes.includes(values.tipo_inversion) && (
+                <Item>
+                  <Label>Vence en</Label>
+                  <ErrorMessage
+                    component={Label}
+                    name="fecha_vencimiento"
+                    style={styles.errorInput}
+                  />
+                  <DatePicker
+                    name="fecha_vencimiento"
+                    defaultDate={values.fecha_vencimiento}
+                    minimumDate={new Date(2000, 1, 1)}
+                    maximumDate={new Date(2100, 12, 31)}
+                    locale={"es"}
+                    timeZoneOffsetInMinutes={undefined}
+                    modalTransparent={false}
+                    animationType={"fade"}
+                    androidMode={"default"}
+                    placeHolderText="Elegir fecha"
+                    textStyle={{ color: "#5073F3" }}
+                    placeHolderTextStyle={{ color: "#d3d3d3" }}
+                    onDateChange={(v) => setFieldValue("fecha_vencimiento", v)}
+                    disabled={false}
+                  />
+                </Item>
+              )}
               <Item>
                 <Label>Debitar de</Label>
                 <ErrorMessage
@@ -314,40 +341,27 @@ export default function RegistrarInversion({ navigation, props }) {
                   disabled={false}
                 />
               </Item>
-              <Item stackedLabel>
-                <Label>
-                  Descripción{" "}
-                  <ErrorMessage
-                    component={Label}
-                    name="descripcion"
-                    style={styles.errorInput}
-                  />
-                </Label>
-                <Input
-                  name="descripcion"
-                  style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("descripcion")}
-                  onBlur={handleBlur("descripcion")}
-                  value={values.descripcion}
-                />
-              </Item>
-              <Item stackedLabel>
-                <Label>
-                  Intermediario{" "}
-                  <ErrorMessage
-                    component={Label}
+              {inversiones_con_cantidad_adquirida.includes(
+                values.tipo_inversion
+              ) && (
+                <Item stackedLabel>
+                  <Label>
+                    Intermediario{" "}
+                    <ErrorMessage
+                      component={Label}
+                      name="intermediario"
+                      style={styles.errorInput}
+                    />
+                  </Label>
+                  <Input
                     name="intermediario"
-                    style={styles.errorInput}
+                    style={{ color: "#5073F3" }}
+                    onChangeText={handleChange("intermediario")}
+                    onBlur={handleBlur("intermediario")}
+                    value={values.intermediario}
                   />
-                </Label>
-                <Input
-                  name="intermediario"
-                  style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("intermediario")}
-                  onBlur={handleBlur("intermediario")}
-                  value={values.intermediario}
-                />
-              </Item>
+                </Item>
+              )}
               <Text style={styles.space}></Text>
               <Button block primary onPress={handleSubmit} title="Submit">
                 <Text>Guardar</Text>

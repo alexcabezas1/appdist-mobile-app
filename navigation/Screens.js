@@ -148,7 +148,7 @@ function CuentasBancariasStack(props) {
         options={{
           header: ({ navigation, scene }) => (
             <Header
-              title="Cuentas Bancarias / Registrar Cuenta"
+              title="Cuentas Bancarias / Nueva Cuenta"
               scene={scene}
               navigation={navigation}
             />
@@ -181,7 +181,7 @@ function InversionesStack(props) {
         options={{
           header: ({ navigation, scene }) => (
             <Header
-              title="Inversiones / Registrar Inversion"
+              title="Inversiones / Nueva Inversion"
               scene={scene}
               navigation={navigation}
             />

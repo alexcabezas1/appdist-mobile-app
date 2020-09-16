@@ -12,6 +12,9 @@ const formStyles = StyleSheet.create({
     marginBottom: 0,
     marginTop: 0,
   },
+  noBorder: {
+    borderBottomWidth: 0,
+  },
 });
 
 const listStyles = StyleSheet.create({
