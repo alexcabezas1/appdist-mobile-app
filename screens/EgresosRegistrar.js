@@ -172,6 +172,7 @@ export default function RegistrarEgreso({ navigation, props }) {
                   <Picker.Item label="Educación" value="educación" />
                   <Picker.Item label="Salud" value="salud" />
                   <Picker.Item label="Comida" value="comida" />
+                  <Picker.Item label="Gimnasio" value="gimnasio" />
                   <Picker.Item label="Transporte" value="transporte" />
                   <Picker.Item label="Hospedaje" value="hospedaje" />
                   <Picker.Item label="Viáticos" value="viáticos" />

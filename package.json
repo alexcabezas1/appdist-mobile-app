@@ -45,10 +45,12 @@
     "react-native-safe-area-context": "0.7.3",
     "react-native-screens": "~2.2.0",
     "react-native-simple-dialogs": "^1.3.0",
+    "react-native-svg": "^12.1.0",
     "react-native-swipe-list-view": "^3.2.3",
     "react-native-vector-icons": "^7.1.0",
     "react-navigation": "^4.4.0",
     "recompose": "^0.30.0",
+    "victory-native": "^35.0.1",
     "yup": "^0.29.3"
   },
   "devDependencies": {

@@ -18,7 +18,6 @@ const TarjetasScreen = ({ navigation, props }) => {
   return (
     <Container>
       <Content>
-        <ListaTarjetas />
         <Button
           block
           primary
@@ -26,6 +25,7 @@ const TarjetasScreen = ({ navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nueva Tarjeta</Text>
         </Button>
+        <ListaTarjetas />
       </Content>
     </Container>
   );
@@ -34,25 +34,25 @@ const TarjetasScreen = ({ navigation, props }) => {
 const ListaTarjetas = (props) => {
   const data = [
     {
-      key:"1",
-      banco:"Santander",
-      entidad:"AMEX",
+      key: "1",
+      banco: "Santander",
+      entidad: "AMEX",
       numero: 4752,
       vencimiento: "11/20",
       fechaCreacion: "03/01/2020",
     },
     {
-      key:"2",
-      banco:"Santander",
-      entidad:"VISA",
+      key: "2",
+      banco: "Santander",
+      entidad: "VISA",
       numero: 4762,
       vencimiento: "11/22",
       fechaCreacion: "03/01/2020",
     },
     {
-      key:"3",
-      banco:"HSBC",
-      entidad:"VISA",
+      key: "3",
+      banco: "HSBC",
+      entidad: "VISA",
       numero: 6375,
       vencimiento: "11/20",
       fechaCreacion: "03/01/2020",
@@ -86,7 +86,7 @@ const ListaTarjetas = (props) => {
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
         <View style={{ width: 170 }}>
-        <Text style={{ paddingBottom: 5 }}>
+          <Text style={{ paddingBottom: 5 }}>
             <Text>Entidad: </Text>
             <B>{data.item.entidad}</B>
           </Text>
@@ -94,11 +94,9 @@ const ListaTarjetas = (props) => {
             <Text>Banco: </Text>
             <B>{data.item.banco}</B>
           </Text>
-
-
         </View>
         <View style={{ width: 220 }}>
-        <Text style={{ paddingBottom: 5 }}>
+          <Text style={{ paddingBottom: 5 }}>
             <Text>Tarjeta: </Text>
             <B>{data.item.numero}</B>
           </Text>
@@ -139,7 +137,7 @@ const ListaTarjetas = (props) => {
   const confirmDelete = (props) => (
     <ConfirmDialog
       title="Confirmación de la Operación"
-      message="¿Está seguro que quieres borrar la tarjeta? Se eliminaran todos los consumos relacionados."
+      message="¿Está seguro que quieres borrar la tarjeta?"
       visible={confirmDialogVisible}
       onTouchOutside={() => setConfirmDialogVisible(false)}
       positiveButton={{

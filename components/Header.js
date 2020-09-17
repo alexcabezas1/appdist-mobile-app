@@ -1,53 +1,67 @@
-import React from 'react';
-import { withNavigation } from '@react-navigation/compat';
-import { TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
-import { Button, Block, NavBar, Input, Text, theme } from 'galio-framework';
+import React from "react";
+import { withNavigation } from "@react-navigation/compat";
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  Dimensions,
+} from "react-native";
+import { Button, Block, NavBar, Input, Text, theme } from "galio-framework";
 
-import Icon from './Icon';
-import materialTheme from '../constants/Theme';
+import Icon from "./Icon";
+import materialTheme from "../constants/Theme";
 
-const { height, width } = Dimensions.get('window');
-const iPhoneX = () => Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896);
+const { height, width } = Dimensions.get("window");
+const iPhoneX = () =>
+  Platform.OS === "ios" &&
+  (height === 812 || width === 812 || height === 896 || width === 896);
 
-const ChatButton = ({isWhite, style, navigation}) => (
-  <TouchableOpacity style={[styles.button, style]} onPress={() => navigation.navigate('Pro')}>
+const ChatButton = ({ isWhite, style, navigation }) => (
+  <TouchableOpacity
+    style={[styles.button, style]}
+    onPress={() => navigation.navigate("Pro")}
+  >
     <Icon
       family="GalioExtra"
       size={16}
       name="chat-33"
-      color={theme.COLORS[isWhite ? 'WHITE' : 'ICON']}
+      color={theme.COLORS[isWhite ? "WHITE" : "ICON"]}
     />
     <Block middle style={styles.notify} />
   </TouchableOpacity>
 );
 
-const BasketButton = ({isWhite, style, navigation}) => (
-  <TouchableOpacity style={[styles.button, style]} onPress={() => navigation.navigate('Pro')}>
+const BasketButton = ({ isWhite, style, navigation }) => (
+  <TouchableOpacity
+    style={[styles.button, style]}
+    onPress={() => navigation.navigate("Pro")}
+  >
     <Icon
       family="GalioExtra"
       size={16}
       name="basket-simple"
-      color={theme.COLORS[isWhite ? 'WHITE' : 'ICON']}
+      color={theme.COLORS[isWhite ? "WHITE" : "ICON"]}
     />
     <Block middle style={styles.notify} />
   </TouchableOpacity>
 );
 
-
 class Header extends React.Component {
   handleLeftPress = () => {
     const { back, navigation } = this.props;
-    return (back ? navigation.goBack() : navigation.openDrawer());
-  }
+    return back ? navigation.goBack() : navigation.openDrawer();
+  };
 
   renderRight = () => {
     const { white, title, navigation } = this.props;
-    return [
+    return [];
+
+    /*    return [
       <ChatButton key='chat-title' navigation={navigation} isWhite={white} />,
       <BasketButton key='basket-title' navigation={navigation} isWhite={white} />
     ]
 
-/*    if (title === 'Title') {
+    if (title === 'Title') {
       return [
         <ChatButton key='chat-title' navigation={navigation} isWhite={white} />,
         <BasketButton key='basket-title' navigation={navigation} isWhite={white} />
@@ -109,12 +123,12 @@ class Header extends React.Component {
           return ([
             <ChatButton key='chat-search' navigation={navigation} isWhite={white} />,
             <BasketButton key='basket-search' navigation={navigation} isWhite={white} />
-          ]);          
-            
+          ]);
+
       default:
         break;
     }*/
-  }
+  };
 
   renderSearch = () => {
     const { navigation } = this.props;
@@ -124,32 +138,56 @@ class Header extends React.Component {
         color="black"
         style={styles.search}
         placeholder="What are you looking for?"
-        onFocus={() => navigation.navigate('Pro')}
-        iconContent={<Icon size={16} color={theme.COLORS.MUTED} name="magnifying-glass" family="entypo" />}
+        onFocus={() => navigation.navigate("Pro")}
+        iconContent={
+          <Icon
+            size={16}
+            color={theme.COLORS.MUTED}
+            name="magnifying-glass"
+            family="entypo"
+          />
+        }
       />
-    )
-  }
+    );
+  };
 
   renderTabs = () => {
     const { navigation, tabTitleLeft, tabTitleRight } = this.props;
 
     return (
       <Block row style={styles.tabs}>
-        <Button shadowless style={[styles.tab, styles.divider]} onPress={() => navigation.navigate('Pro')}>
+        <Button
+          shadowless
+          style={[styles.tab, styles.divider]}
+          onPress={() => navigation.navigate("Pro")}
+        >
           <Block row middle>
             <Icon name="grid" family="feather" style={{ paddingRight: 8 }} />
-            <Text size={16} style={styles.tabTitle}>{tabTitleLeft || 'Categories'}</Text>
+            <Text size={16} style={styles.tabTitle}>
+              {tabTitleLeft || "Categories"}
+            </Text>
           </Block>
         </Button>
-        <Button shadowless style={styles.tab} onPress={() => navigation.navigate('Pro')}>
+        <Button
+          shadowless
+          style={styles.tab}
+          onPress={() => navigation.navigate("Pro")}
+        >
           <Block row middle>
-            <Icon size={16} name="camera-18" family="GalioExtra" style={{ paddingRight: 8 }} />
-            <Text size={16} style={styles.tabTitle}>{tabTitleRight || 'Best Deals'}</Text>
+            <Icon
+              size={16}
+              name="camera-18"
+              family="GalioExtra"
+              style={{ paddingRight: 8 }}
+            />
+            <Text size={16} style={styles.tabTitle}>
+              {tabTitleRight || "Best Deals"}
+            </Text>
           </Block>
         </Button>
       </Block>
-    )
-  }
+    );
+  };
 
   renderHeader = () => {
     const { search, tabs } = this.props;
@@ -159,18 +197,24 @@ class Header extends React.Component {
           {search ? this.renderSearch() : null}
           {tabs ? this.renderTabs() : null}
         </Block>
-      )
+      );
     }
     return null;
-  }
+  };
 
   render() {
     const { back, title, white, transparent, navigation } = this.props;
     // const { routeName } = navigation.state;
-    const noShadow = ["Search", "Categories", "Deals", "Pro", "Profile"].includes(title);
+    const noShadow = [
+      "Search",
+      "Categories",
+      "Deals",
+      "Pro",
+      "Profile",
+    ].includes(title);
     const headerStyles = [
       !noShadow ? styles.shadow : null,
-      transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null,
+      transparent ? { backgroundColor: "rgba(0,0,0,0)" } : null,
     ];
 
     return (
@@ -181,13 +225,13 @@ class Header extends React.Component {
           style={styles.navbar}
           transparent={transparent}
           right={this.renderRight()}
-          rightStyle={{ alignItems: 'center' }}
-          leftStyle={{ flex: 0.3, paddingTop: 2  }}
-          leftIconName={(back ? 'chevron-left' : 'navicon')}
+          rightStyle={{ alignItems: "center" }}
+          leftStyle={{ flex: 0.3, paddingTop: 2 }}
+          leftIconName={back ? "chevron-left" : "navicon"}
           leftIconColor={white ? theme.COLORS.WHITE : theme.COLORS.ICON}
           titleStyle={[
             styles.title,
-            {color: theme.COLORS[white ? 'WHITE' : 'ICON']},
+            { color: theme.COLORS[white ? "WHITE" : "ICON"] },
           ]}
           onLeftPress={this.handleLeftPress}
         />
@@ -202,12 +246,12 @@ export default withNavigation(Header);
 const styles = StyleSheet.create({
   button: {
     padding: 12,
-    position: 'relative',
+    position: "relative",
   },
   title: {
-    width: '100%',
+    width: "100%",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   navbar: {
     paddingVertical: 0,
@@ -217,7 +261,7 @@ const styles = StyleSheet.create({
   },
   shadow: {
     backgroundColor: theme.COLORS.WHITE,
-    shadowColor: 'black',
+    shadowColor: "black",
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     shadowOpacity: 0.2,
@@ -228,7 +272,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     height: theme.SIZES.BASE / 2,
     width: theme.SIZES.BASE / 2,
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
   },
@@ -253,7 +297,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     backgroundColor: theme.COLORS.TRANSPARENT,
-    width: width * 0.50,
+    width: width * 0.5,
     borderRadius: 0,
     borderWidth: 0,
     height: 24,
@@ -261,6 +305,6 @@ const styles = StyleSheet.create({
   },
   tabTitle: {
     lineHeight: 19,
-    fontWeight: '300'
+    fontWeight: "300",
   },
-})
+});

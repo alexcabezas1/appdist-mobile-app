@@ -24,8 +24,13 @@ import {
 import * as DocumentPicker from "expo-document-picker";
 
 export default function RegistrarPrestamo({ navigation, props }) {
-  const plazo_del_prestamo = ["3_meses", "6_meses", "1_año", "3_años", "5_años"];
-  
+  const plazo_del_prestamo = [
+    "3_meses",
+    "6_meses",
+    "1_año",
+    "3_años",
+    "5_años",
+  ];
 
   const initialValues = {
     capitalprincipal: "0.0",
@@ -43,7 +48,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
       .min(1, "debe ser mayor a 0")
       .max(999999999, "cifra no permitida")
       .required("Es requerido"),
-      interes: Yup.number()
+    interes: Yup.number()
       .typeError("debe ser un número")
       .min(1, "debe ser mayor a 0")
       .max(999999999, "cifra no permitida")
@@ -58,14 +63,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
       .min(1, "debe ser mayor a 0")
       .max(36, "cifra no permitida"),
     fecha_vencimiento_en: Yup.date().required("*"),
-    
   });
-
-  const pickDocument = async () => {
-    let result = await DocumentPicker.getDocumentAsync({});
-    alert(result.uri);
-    console.log(result);
-  };
 
   return (
     <Container>
@@ -120,7 +118,6 @@ export default function RegistrarPrestamo({ navigation, props }) {
                   component={Label}
                   name="interes"
                   style={styles.errorInput}
-                  
                 />
                 <Input
                   name="interes"
@@ -128,10 +125,8 @@ export default function RegistrarPrestamo({ navigation, props }) {
                   style={{ color: "#5073F3" }}
                   onChangeText={handleChange("interes")}
                   onBlur={handleBlur("interes")}
-                  value={values.interes} 
-                    
+                  value={values.interes}
                 />
-                
               </Item>
               <Item>
                 <Label>Cantidad de Cuotas</Label>
@@ -169,7 +164,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
                   <Picker.Item label="5 años" value="5_años" />
                 </Picker>
               </Item>
-              
+
               <Item>
                 <Label>Fecha de vencimiento:</Label>
                 <ErrorMessage
@@ -236,7 +231,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
                   <Picker.Item label="Prestatario" value="prestatario" />
                 </Picker>
               </Item>
-              
+
               <Text style={styles.space}></Text>
               <Button block primary onPress={handleSubmit} title="Submit">
                 <Text>Guardar</Text>
