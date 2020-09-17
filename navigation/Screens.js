@@ -20,6 +20,7 @@ import InversionesScreen, {
   RegistrarInversionScreen,
 } from "../screens/Inversiones";
 import PrestamosScreen from "../screens/Prestamos";
+import PrestamosRegistrarScreen from "../screens/PrestamosRegistrar";
 import PresupuestosScreen from "../screens/Presupuestos";
 
 import CustomDrawerContent from "./Menu";
@@ -208,16 +209,29 @@ function InversionesStack(props) {
 function PrestamosStack(props) {
   return (
     <Stack.Navigator
-      initialRouteName="Prestamos"
+      initialRouteName="Préstamos"
       mode="card"
       headerMode="screen"
     >
       <Stack.Screen
-        name="Prestamos"
+        name="Préstamos"
         component={PrestamosScreen}
         options={{
           header: ({ navigation, scene }) => (
-            <Header title="Prestamos" scene={scene} navigation={navigation} />
+            <Header title="Préstamos" scene={scene} navigation={navigation} />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="NuevoPrestamo"
+        component={PrestamosRegistrarScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title="Préstamos / Nuevo Préstamo"
+              scene={scene}
+              navigation={navigation}
+            />
           ),
         }}
       />
