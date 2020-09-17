@@ -21,8 +21,6 @@ import {
   Right,
 } from "native-base";
 
-import * as DocumentPicker from "expo-document-picker";
-
 export default function RegistrarPrestamo({ navigation, props }) {
   const plazo_del_prestamo = [
     "3_meses",

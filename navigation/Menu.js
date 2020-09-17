@@ -21,17 +21,15 @@ function CustomDrawerContent({
 }) {
   const insets = useSafeArea();
   const screens = [
-    "Home",
+    "Inicio",
     "Ingresos",
     "Egresos",
     "Tarjetas",
     "Cuentas Bancarias",
     "Inversiones",
     "Prestamos",
-    "Presupuestos",
-    "Profile",
-    "Settings",
-    "Components",
+    "Presupuesto",
+    "Perfil",
   ];
   return (
     <Block

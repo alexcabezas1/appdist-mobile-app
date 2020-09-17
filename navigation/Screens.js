@@ -21,7 +21,7 @@ import InversionesScreen, {
 import PrestamosScreen, {
   RegistrarPrestamosScreen,
 } from "../screens/Prestamos";
-import PresupuestosScreen from "../screens/Presupuestos";
+import PresupuestoScreen from "../screens/Presupuesto";
 import DashboardScreen from "../screens/Dashboard";
 
 import CustomDrawerContent from "./Menu";
@@ -243,17 +243,17 @@ function PrestamosStack(props) {
 function PresupuestosStack(props) {
   return (
     <Stack.Navigator
-      initialRouteName="Presupuestos"
+      initialRouteName="Presupuesto"
       mode="card"
       headerMode="screen"
     >
       <Stack.Screen
-        name="Presupuestos"
-        component={PresupuestosScreen}
+        name="Presupuesto"
+        component={PresupuestoScreen}
         options={{
           header: ({ navigation, scene }) => (
             <Header
-              title="Presupuestos"
+              title="Administrar Presupuesto"
               scene={scene}
               navigation={navigation}
             />
@@ -287,42 +287,6 @@ function ProfileStack(props) {
   );
 }
 
-function SettingsStack(props) {
-  return (
-    <Stack.Navigator
-      initialRouteName="Settings"
-      mode="card"
-      headerMode="screen"
-    >
-      <Stack.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          header: ({ navigation, scene }) => (
-            <Header title="Settings" scene={scene} navigation={navigation} />
-          ),
-        }}
-      />
-    </Stack.Navigator>
-  );
-}
-
-function ComponentsStack(props) {
-  return (
-    <Stack.Navigator mode="card" headerMode="screen">
-      <Stack.Screen
-        name="Components"
-        component={ComponentsScreen}
-        options={{
-          header: ({ navigation, scene }) => (
-            <Header title="Components" scene={scene} navigation={navigation} />
-          ),
-        }}
-      />
-    </Stack.Navigator>
-  );
-}
-
 function HomeStack(props) {
   return (
     <Stack.Navigator mode="card" headerMode="screen">
@@ -331,7 +295,7 @@ function HomeStack(props) {
         component={DashboardScreen}
         options={{
           header: ({ navigation, scene }) => (
-            <Header title="Home" navigation={navigation} scene={scene} />
+            <Header title="Inicio" navigation={navigation} scene={scene} />
           ),
         }}
       />
@@ -487,7 +451,7 @@ function AppStack(props) {
         }}
       />
       <Drawer.Screen
-        name="Presupuestos"
+        name="Presupuesto"
         component={PresupuestosStack}
         options={{
           drawerIcon: ({ focused }) => (
@@ -510,36 +474,6 @@ function AppStack(props) {
               name="circle-10"
               family="GalioExtra"
               color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Settings"
-        component={SettingsStack}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="gears"
-              family="font-awesome"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-              style={{ marginRight: -3 }}
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Components"
-        component={ComponentsStack}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="md-switch"
-              family="ionicon"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-              style={{ marginRight: 2, marginLeft: 2 }}
             />
           ),
         }}
