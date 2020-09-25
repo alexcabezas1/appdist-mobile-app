@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback } from "react";
 import { StyleSheet, Dimensions, Alert } from "react-native";
 import * as Yup from "yup";
 import { Formik, ErrorMessage, yupToFormErrors } from "formik";
@@ -19,42 +19,60 @@ import {
   Button,
   Text,
   Form,
+  Left,
+  Right,
 } from "native-base";
-
-const { width } = Dimensions.get("screen");
-
-const thumbMeasure = (width - 48 - 32) / 3;
+import { formStyles } from "./shared/styles";
+import { Cuenta, BANCOS_OPCIONES, timestamp } from "../services/models";
 
 export default function CuentasRegistrar({ navigation, props }) {
   const initialValues = {
-    banco: undefined,
-    numero_cuenta: undefined,
-    tipo: "CBU",
-    cc: undefined,
+    banco_asociado: "banco_hsbc",
+    numero: undefined,
+    cbu: undefined,
+    descripcion: "desc del banco",
   };
-  const [chosenDate, setDate] = useState(new Date());
 
   const validationSchema = Yup.object({
-    cantidad: Yup.number()
+    numero: Yup.number()
       .typeError("debe ser un número")
-      .min(1, "debe ser mayor a 0")
-      .max(999999999, "cifra no permitida")
       .required("es requerida"),
-    recibido_en: Yup.date().when("frecuencia", {
-      is: "una_vez",
-      then: Yup.date().required("es requerido"),
-      otherwise: Yup.date().notRequired(),
-    }),
+    cbu: Yup.number().typeError("debe ser un número").required("es requerida"),
   });
-  //Banco, NC, CBU/CVU.
+
+  const submitHandler = useCallback(async (form, { resetForm }) => {
+    const obj = new Cuenta(form);
+    await obj.save();
+    resetForm();
+    navigation.navigate("CuentasBancarias", { version: timestamp() });
+  }, []);
+
   return (
     <Container>
-      <Header />
+      <Header>
+        <Left>
+          <Button
+            transparent
+            onPress={() => navigation.navigate("CuentasBancarias")}
+          >
+            <Icon name="arrow-back" />
+            <Text>Volver</Text>
+          </Button>
+        </Left>
+        <Right>
+          <Button
+            transparent
+            onPress={() => navigation.navigate("CuentasBancarias")}
+          >
+            <Text>Cancelar</Text>
+          </Button>
+        </Right>
+      </Header>
       <Content>
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values) => console.log(values)}
+          onSubmit={submitHandler}
         >
           {({
             handleChange,
@@ -69,171 +87,54 @@ export default function CuentasRegistrar({ navigation, props }) {
               <Item>
                 <Label>Banco: </Label>
                 <Picker
-                  name="frecuencia"
+                  name="banco_asociado"
                   mode="dropdown"
                   iosIcon={<Icon name="arrow-down" />}
                   style={{ width: undefined, color: "#5073F3" }}
                   placeholder="Frecuencia del cuenta"
                   placeholderStyle={{ color: "#bfc6ea" }}
                   placeholderIconColor="#007aff"
-                  selectedValue={values.frecuencia}
-                  onValueChange={(v) => setFieldValue("frecuencia", v)}
+                  selectedValue={values.banco_asociado}
+                  onValueChange={(v) => setFieldValue("banco_asociado", v)}
                 >
-                  <Picker.Item label="Nación" value="nacion" />
-                  <Picker.Item label="Santander Río" value="santander" />
-                  <Picker.Item label="Galicia" value="galicia" />
-                  <Picker.Item label="Provincia" value="provincia" />
-                  <Picker.Item label="HSBC" value="hsbc" />
-                  <Picker.Item label="CitiBank" value="citibank" />
-                  <Picker.Item label="Comafi" value="comafi" />
-                  <Picker.Item label="MercadoPago" value="mercadopago" />
-
+                  {Object.entries(BANCOS_OPCIONES).map((e) => (
+                    <Picker.Item label={e[1].name} value={e[0]} key={e[0]} />
+                  ))}
                 </Picker>
               </Item>
               <Item>
-                <Label>Numero de cuenta</Label>
+                <Label>Numero de Cuenta:</Label>
                 <Input
-                  name="nroCuenta"
+                  name="numero"
                   keyboardType="numeric"
                   style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("nroCuenta")}
-                  onBlur={handleBlur("nroCuenta")}
-                  value={values.numero_cuenta}
+                  onChangeText={handleChange("numero")}
+                  onBlur={handleBlur("numero")}
+                  value={values.numero}
                 />
               </Item>
 
               <Item>
                 <Label>CBU/CVU:</Label>
                 <Input
-                  name="cc"
+                  name="cbu"
                   keyboardType="numeric"
                   style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("cc")}
-                  onBlur={handleBlur("cc")}
-                  value={values.cc}
+                  onChangeText={handleChange("cbu")}
+                  onBlur={handleBlur("cbu")}
+                  value={values.cbu}
                 />
               </Item>
               <Text style={styles.space}></Text>
               <Button block primary onPress={handleSubmit} title="Submit">
                 <Text>Guardar</Text>
               </Button>
-              <Button
-                block
-                bordered
-                light
-                onPress={() => navigation.navigate("CuentasBancarias")}
-              >
-                <Text>Cancelar</Text>
-              </Button>
             </Form>
           )}
         </Formik>
       </Content>
-      <Footer />
     </Container>
   );
 }
 
-const styles = StyleSheet.create({
-  components: {},
-  title: {
-    paddingVertical: theme.SIZES.BASE,
-    paddingHorizontal: theme.SIZES.BASE * 2,
-    color: theme.COLORS.WHITE,
-    fontWeight: "bold",
-  },
-  group: {
-    paddingTop: theme.SIZES.BASE * 3.75,
-  },
-  shadow: {
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    shadowOpacity: 0.2,
-    elevation: 2,
-  },
-  button: {
-    marginBottom: theme.SIZES.BASE,
-    width: width - theme.SIZES.BASE * 2,
-  },
-  optionsText: {
-    fontSize: theme.SIZES.BASE * 0.75,
-    color: "#4A4A4A",
-    fontWeight: "normal",
-    fontStyle: "normal",
-    letterSpacing: -0.29,
-  },
-  optionsButton: {
-    width: "auto",
-    height: 34,
-    paddingHorizontal: theme.SIZES.BASE,
-    paddingVertical: 10,
-  },
-  input: {
-    borderBottomWidth: 1,
-  },
-  inputDefault: {
-    borderBottomColor: materialTheme.COLORS.PLACEHOLDER,
-  },
-  inputTheme: {
-    borderBottomColor: materialTheme.COLORS.PRIMARY,
-  },
-  inputTheme: {
-    borderBottomColor: materialTheme.COLORS.PRIMARY,
-  },
-  inputInfo: {
-    borderBottomColor: materialTheme.COLORS.INFO,
-  },
-  inputSuccess: {
-    borderBottomColor: materialTheme.COLORS.SUCCESS,
-  },
-  inputWarning: {
-    borderBottomColor: materialTheme.COLORS.WARNING,
-  },
-  inputDanger: {
-    borderBottomColor: materialTheme.COLORS.ERROR,
-  },
-  imageBlock: {
-    overflow: "hidden",
-    borderRadius: 4,
-  },
-  rows: {
-    height: theme.SIZES.BASE * 2,
-  },
-  social: {
-    width: theme.SIZES.BASE * 3.5,
-    height: theme.SIZES.BASE * 3.5,
-    borderRadius: theme.SIZES.BASE * 1.75,
-    justifyContent: "center",
-  },
-  category: {
-    backgroundColor: theme.COLORS.WHITE,
-    marginVertical: theme.SIZES.BASE / 2,
-    borderWidth: 0,
-  },
-  categoryTitle: {
-    height: "100%",
-    paddingHorizontal: theme.SIZES.BASE,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  albumThumb: {
-    borderRadius: 4,
-    marginVertical: 4,
-    alignSelf: "center",
-    width: thumbMeasure,
-    height: thumbMeasure,
-  },
-  space: {
-    color: "#C0C0C0",
-    fontSize: 15,
-    textAlign: "justify",
-  },
-  errorInput: {
-    color: "#D84444",
-    textAlign: "left",
-    marginBottom: 0,
-    marginTop: 0,
-  },
-});
+const styles = { ...formStyles };

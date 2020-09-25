@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,8 +11,11 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SwipeListView } from "react-native-swipe-list-view";
 import CuentasRegistrar from "./CuentasRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
+import { B } from "./shared/common";
+import { listStyles } from "./shared/styles";
+import { Cuenta, BANCOS_OPCIONES, timestamp } from "../services/models";
 
-const CuentasScreen = ({ navigation, props }) => {
+const CuentasScreen = ({ route, navigation, props }) => {
   return (
     <Container>
       <Content>
@@ -23,48 +26,26 @@ const CuentasScreen = ({ navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nueva Cuenta Bancaria</Text>
         </Button>
-        <ListaCuentas />
+        <ListaCuentas {...route.params} />
       </Content>
     </Container>
   );
 };
 
 const ListaCuentas = (props) => {
-  const data = [
-    {
-      title: "Cuentas bancarias",
-      data: [
-        {
-          key: "cuenta.1",
-          banco: "Banco Galicia",
-          nroCuenta: "4-127155030-17",
-          type: "CBU",
-          cc: "00015761117522",
-        },
-        {
-          key: "cuenta.2",
-          banco: "American Express",
-          nroCuenta: "4-127155030-17",
-          type: "CBU",
-          cc: "202365068906090",
-        },
-        {
-          key: "cuenta.3",
-          banco: "MercadoPago",
-          nroCuenta: "4-127155030-17",
-          type: "CVU",
-          cc: "111574792125490",
-        },
-      ],
-    },
-  ];
-  const [listData, setListData] = useState(data);
+  const [version, setVersion] = useState(props.version);
+  const [data, setData] = useState([]);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [itemToBeDelete, setItemToBeDelete] = useState({});
 
-  const B = (props) => (
-    <Text style={{ fontWeight: "bold" }}>{props.children}</Text>
-  );
+  const fetchData = async () => {
+    const cuentas = await Cuenta.cuentas_activas();
+    setData(cuentas);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [props.version, version]);
 
   const closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
@@ -72,19 +53,11 @@ const ListaCuentas = (props) => {
     }
   };
 
-  const deleteRow = ({ rowMap, rowKey }) => {
+  const deleteRow = async ({ rowMap, rowKey }) => {
     setConfirmDialogVisible(false);
     closeRow(rowMap, rowKey);
-    const [section] = rowKey.split(".");
-    const newData = [...listData];
-    const sectionIndex = listData.findIndex(
-      (item) => item.title.toLowerCase() == section
-    );
-    const prevIndex = listData[sectionIndex].data.findIndex(
-      (item) => item.key === rowKey
-    );
-    newData[sectionIndex].data.splice(prevIndex, 1);
-    setListData(newData);
+    await Cuenta.destroy(rowKey);
+    setVersion(timestamp());
   };
 
   const onRowDidOpen = (rowKey) => {
@@ -92,20 +65,24 @@ const ListaCuentas = (props) => {
   };
 
   const renderItem = (data) => (
-    <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
+    <TouchableHighlight
+      style={styles.rowFront}
+      underlayColor={"#AAA"}
+      key={data.item.id}
+    >
       <View style={styles.item}>
         <View style={{ width: 160 }}>
           <Text style={{ paddingBottom: 0 }}>
-            <B>{data.item.banco}</B>
+            <B>{BANCOS_OPCIONES[data.item.banco_asociado].name}</B>
           </Text>
           <Text>
             {"#"}
-            {data.item.nroCuenta}
+            {data.item.numero}
           </Text>
         </View>
         <View style={{ width: 150 }}>
-          <B>{data.item.type}</B>
-          <Text>{data.item.cc}</Text>
+          <B>{BANCOS_OPCIONES[data.item.banco_asociado].tipo.toUpperCase()}</B>
+          <Text>{data.item.cbu}</Text>
         </View>
       </View>
     </TouchableHighlight>
@@ -114,20 +91,22 @@ const ListaCuentas = (props) => {
   const renderHiddenItem = (data, rowMap) => (
     <View style={styles.rowBack}>
       <View>
-        <Text style={{ paddingBottom: 5 }}>
-          <Text>Nada por aquí.</Text>
-        </Text>
+        <Text>Registrado el:</Text>
+        <Text>{data.item.fecha_creacion}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
-        onPress={() => closeRow(rowMap, data.item.key)}
+        onPress={() => {
+          console.log(data.item);
+          closeRow(rowMap, data.item.id);
+        }}
       >
         <Icon color="white" size={30} name="keyboard-backspace" />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnRight]}
         onPress={() => {
-          setItemToBeDelete({ rowMap, rowKey: data.item.key });
+          setItemToBeDelete({ rowMap, rowKey: data.item.id });
           setConfirmDialogVisible(true);
         }}
       >
@@ -136,14 +115,10 @@ const ListaCuentas = (props) => {
     </View>
   );
 
-  const renderSectionHeader = ({ section }) => (
-    <Text style={styles.sectionTitle}>{section.title}</Text>
-  );
-
   const confirmDelete = (props) => (
     <ConfirmDialog
-      title="Confirmación de la operación"
-      message="¿Está seguro que quieres borrar esta cuenta?"
+      title="Confirmación de la Operación"
+      message="¿Está seguro que quieres borrar la cuenta?"
       visible={confirmDialogVisible}
       onTouchOutside={() => setConfirmDialogVisible(false)}
       positiveButton={{
@@ -163,82 +138,34 @@ const ListaCuentas = (props) => {
     <View style={styles.container}>
       {confirmDelete()}
       <SwipeListView
-        useSectionList
-        sections={listData}
+        data={data}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
-        renderSectionHeader={renderSectionHeader}
         leftOpenValue={75}
         rightOpenValue={-150}
         previewRowKey={"0"}
         previewOpenValue={-40}
         previewOpenDelay={3000}
         onRowDidOpen={onRowDidOpen}
-        minHeight={100}
+        minHeight={70}
       />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "white",
-    flex: 1,
-  },
-  backTextWhite: {
-    color: "#FFF",
-  },
+const styles = {
+  ...listStyles,
   rowFront: {
     alignItems: "flex-start",
     backgroundColor: "white",
     borderBottomColor: "#4f73f2",
     borderBottomWidth: 1,
     justifyContent: "center",
-    height: 100,
-    paddingLeft: 60,
-    paddingRight: 50,
-  },
-  rowBack: {
-    alignItems: "center",
-    backgroundColor: "#DDD",
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    height: 70,
     paddingLeft: 15,
+    paddingRight: 15,
   },
-  backRightBtn: {
-    alignItems: "center",
-    bottom: 0,
-    justifyContent: "center",
-    position: "absolute",
-    top: 0,
-    width: 75,
-  },
-  backRightBtnLeft: {
-    backgroundColor: "#4f73f2",
-    right: 75,
-  },
-  backRightBtnRight: {
-    backgroundColor: "#d84343",
-    right: 0,
-  },
-  item: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  sectionTitle: {
-    fontSize: 20,
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingLeft: 10,
-    borderBottomColor: "#4f73f2",
-    borderBottomWidth: 1,
-  },
-  homeButton: {
-    color: "white",
-    fontSize: 18,
-  },
-});
+};
 
 export default CuentasScreen;
 export { CuentasRegistrar };
