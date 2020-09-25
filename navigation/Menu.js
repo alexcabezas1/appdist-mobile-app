@@ -21,7 +21,7 @@ function CustomDrawerContent({
 }) {
   const insets = useSafeArea();
   const screens = [
-    "Inicio",
+    "Home",
     "Ingresos",
     "Egresos",
     "Tarjetas",
