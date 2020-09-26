@@ -186,9 +186,9 @@ class Tarjeta extends BaseModel {
     return {
       id: { type: types.INTEGER, primary_key: true },
       tipo: { type: types.TEXT, not_null: true },
-      banco_asociado: { type: types.TEXT, not_null: true },
+      entidad_emisor: { type: types.TEXT, not_null: true },
       cuenta_id: { type: types.INTEGER },
-      ultimos_numeros: { type: types.INTEGER },
+      ultimos_numeros: { type: types.TEXT },
       fecha_vencimiento: { type: types.DATE, not_null: true },
       fecha_cierre_resumen: { type: types.DATE, not_null: true },
       fecha_vencimiento_resumen: { type: types.DATE, not_null: true },
@@ -205,6 +205,33 @@ class Tarjeta extends BaseModel {
       fecha_borrado: { type: types.DATETIME },
       borrado: { type: types.BOOLEAN, default: () => false },
     };
+  }
+
+  static tarjetas_activas() {
+    const sql = `
+      SELECT
+        t.id AS key,
+        t.id,
+        t.tipo,
+        t.entidad_emisor,
+        t.cuenta_id,
+        t.ultimos_numeros,
+        t.fecha_vencimiento,
+        t.fecha_cierre_resumen,
+        t.fecha_vencimiento_resumen,
+        t.debito_automatico,
+        t.fecha_creacion,
+        c.banco_asociado AS cuenta_banco_asociado,
+        c.numero AS cuenta_numero
+      FROM tarjetas t
+      INNER JOIN cuentas c ON t.cuenta_id = c.id
+      WHERE t.borrado = false
+      ORDER BY t.fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
   }
 }
 
@@ -442,6 +469,18 @@ const BANCOS_OPCIONES = {
   mercadopago: { name: "MercadoPago", tipo: "cvu" },
 };
 
+const TARJETAS_TIPO_OPCIONES = {
+  credito: "Crédito",
+  debito: "Débito",
+};
+
+const TARJETAS_ENTIDAD_OPCIONES = {
+  visa: "Visa",
+  amex: "American Express",
+  mastercard: "MasterCard",
+  otro: "Otro",
+};
+
 export {
   Ingreso,
   Cuenta,
@@ -460,4 +499,6 @@ export {
   currentDateTime,
   timestamp,
   BANCOS_OPCIONES,
+  TARJETAS_TIPO_OPCIONES,
+  TARJETAS_ENTIDAD_OPCIONES,
 };

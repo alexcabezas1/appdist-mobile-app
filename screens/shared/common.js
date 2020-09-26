@@ -5,4 +5,6 @@ const B = (props) => (
   <Text style={{ fontWeight: "bold" }}>{props.children}</Text>
 );
 
-export { B };
+const UNSELECTED_VALUE = "no_aplica";
+
+export { B, UNSELECTED_VALUE };

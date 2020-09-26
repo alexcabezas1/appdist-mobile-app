@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableHighlight,
   View,
+  Dimensions,
 } from "react-native";
 import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -13,8 +14,22 @@ import RegistrarTarjetaScreen from "./TarjetasRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
 import { listStyles } from "./shared/styles";
 import { B } from "./shared/common";
+import {
+  Tarjeta,
+  BANCOS_OPCIONES,
+  TARJETAS_TIPO_OPCIONES,
+  TARJETAS_ENTIDAD_OPCIONES,
+  timestamp,
+} from "../services/models";
+import {
+  formatDate,
+  formatDateMonthAndYear,
+  formatDateTime,
+} from "../services/common";
 
-const TarjetasScreen = ({ navigation, props }) => {
+const { width } = Dimensions.get("screen");
+
+const TarjetasScreen = ({ route, navigation, props }) => {
   return (
     <Container>
       <Content>
@@ -25,43 +40,27 @@ const TarjetasScreen = ({ navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nueva Tarjeta</Text>
         </Button>
-        <ListaTarjetas />
+        <ListaTarjetas {...route.params} />
       </Content>
     </Container>
   );
 };
 
 const ListaTarjetas = (props) => {
-  const data = [
-    {
-      key: "1",
-      banco: "Santander",
-      entidad: "AMEX",
-      numero: 4752,
-      vencimiento: "11/20",
-      fechaCreacion: "03/01/2020",
-    },
-    {
-      key: "2",
-      banco: "Santander",
-      entidad: "VISA",
-      numero: 4762,
-      vencimiento: "11/22",
-      fechaCreacion: "03/01/2020",
-    },
-    {
-      key: "3",
-      banco: "HSBC",
-      entidad: "VISA",
-      numero: 6375,
-      vencimiento: "11/20",
-      fechaCreacion: "03/01/2020",
-    },
-  ];
-
-  const [listData, setListData] = useState(data);
+  const [version, setVersion] = useState(props.version);
+  const [data, setData] = useState([]);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [itemToBeDelete, setItemToBeDelete] = useState({});
+
+  const fetchData = async () => {
+    const objs = await Tarjeta.tarjetas_activas();
+    console.log(objs);
+    setData(objs);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version, props.version]);
 
   const closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
@@ -69,13 +68,11 @@ const ListaTarjetas = (props) => {
     }
   };
 
-  const deleteRow = ({ rowMap, rowKey }) => {
+  const deleteRow = async ({ rowMap, rowKey }) => {
     setConfirmDialogVisible(false);
     closeRow(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex((item) => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
+    await Tarjeta.destroy(rowKey);
+    setVersion(timestamp());
   };
 
   const onRowDidOpen = (rowKey) => {
@@ -85,26 +82,33 @@ const ListaTarjetas = (props) => {
   const renderItem = (data) => (
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
-        <View style={{ width: 170 }}>
-          <Text style={{ paddingBottom: 5 }}>
-            <Text>Entidad: </Text>
-            <B>{data.item.entidad}</B>
+        <View style={{ width: parseInt(width) * 0.4 }}>
+          <Text style={{ paddingBottom: 5, color: "#5073F3" }}>
+            <B>{TARJETAS_ENTIDAD_OPCIONES[data.item.entidad_emisor]}</B>
           </Text>
-          <Text style={{ paddingBottom: 5 }}>
-            <Text>Banco: </Text>
-            <B>{data.item.banco}</B>
+          <Text>
+            <B>{TARJETAS_TIPO_OPCIONES[data.item.tipo]}</B> #
+            {data.item.ultimos_numeros}
           </Text>
+          <Text>{formatDateMonthAndYear(data.item.fecha_vencimiento)}</Text>
+          {data.item.debito_automatico == true && (
+            <Text>Débito Automático</Text>
+          )}
         </View>
-        <View style={{ width: 220 }}>
-          <Text style={{ paddingBottom: 5 }}>
-            <Text>Tarjeta: </Text>
-            <B>{data.item.numero}</B>
-          </Text>
-
-          <Text style={{ paddingBottom: 5 }}>
-            <Text>Vencimiento: </Text>
-            <B>{data.item.vencimiento}</B>
-          </Text>
+        <View style={{ width: parseInt(width) * 0.5 }}>
+          <B>Cierre Resumen:</B>
+          <Text>{formatDate(data.item.fecha_cierre_resumen)}</Text>
+          <B>Vencimiento Resumen:</B>
+          <Text>{formatDate(data.item.fecha_vencimiento_resumen)}</Text>
+          {(data.item.debito_automatico || data.item.tipo === "debito") && (
+            <View>
+              <B>Cuenta Bancaria:</B>
+              <Text>
+                {BANCOS_OPCIONES[data.item.cuenta_banco_asociado].name} #
+                {data.item.cuenta_numero}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableHighlight>
@@ -114,7 +118,7 @@ const ListaTarjetas = (props) => {
     <View style={styles.rowBack}>
       <View>
         <Text>Registrada el:</Text>
-        <Text>{data.item.fechaCreacion}</Text>
+        <Text>{formatDateTime(data.item.fecha_creacion)}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
@@ -157,7 +161,7 @@ const ListaTarjetas = (props) => {
     <View style={styles.container}>
       {confirmDelete()}
       <SwipeListView
-        data={listData}
+        data={data}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         leftOpenValue={110}
@@ -166,7 +170,7 @@ const ListaTarjetas = (props) => {
         previewOpenValue={-40}
         previewOpenDelay={3000}
         onRowDidOpen={onRowDidOpen}
-        minHeight={100}
+        minHeight={130}
       />
     </View>
   );
@@ -174,6 +178,16 @@ const ListaTarjetas = (props) => {
 
 const styles = {
   ...listStyles,
+  rowFront: {
+    alignItems: "flex-start",
+    backgroundColor: "white",
+    borderBottomColor: "#4f73f2",
+    borderBottomWidth: 1,
+    justifyContent: "center",
+    height: 150,
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
 };
 
 export default TarjetasScreen;
