@@ -19,12 +19,12 @@ import {
   BANCOS_OPCIONES,
   TARJETAS_TIPO_OPCIONES,
   TARJETAS_ENTIDAD_OPCIONES,
-  timestamp,
 } from "../services/models";
 import {
   formatDate,
   formatDateMonthAndYear,
   formatDateTime,
+  timestamp,
 } from "../services/common";
 
 const { width } = Dimensions.get("screen");
@@ -53,8 +53,7 @@ const ListaTarjetas = (props) => {
   const [itemToBeDelete, setItemToBeDelete] = useState({});
 
   const fetchData = async () => {
-    const objs = await Tarjeta.tarjetas_activas();
-    console.log(objs);
+    const objs = await Tarjeta.tarjetasActivas();
     setData(objs);
   };
 

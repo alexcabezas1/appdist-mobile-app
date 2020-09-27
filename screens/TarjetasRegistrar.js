@@ -57,7 +57,7 @@ export default function RegistrarTarjeta({ route, navigation, props }) {
   const [cuentas, setCuentas] = useState([]);
 
   const fetchData = async () => {
-    const cuentas = await Cuenta.cuentas_activas();
+    const cuentas = await Cuenta.cuentasActivas();
     setCuentas(cuentas);
   };
 
@@ -273,6 +273,7 @@ export default function RegistrarTarjeta({ route, navigation, props }) {
                         BANCOS_OPCIONES[e.banco_asociado].name + " #" + e.numero
                       }
                       value={e.id}
+                      key={e.id}
                     />
                   ))}
                 </Picker>
