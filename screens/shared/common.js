@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Text } from "react-native";
 
 const B = (props) => (
-  <Text style={{ fontWeight: "bold" }}>{props.children}</Text>
+  <Text style={{ fontWeight: "bold", ...props.style }}>{props.children}</Text>
 );
 
 const UNSELECTED_VALUE = "no_aplica";

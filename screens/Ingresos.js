@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,8 +13,15 @@ import RegistrarIngresoScreen from "./IngresosRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
 import { listStyles } from "./shared/styles";
 import { B } from "./shared/common";
+import {
+  Ingreso,
+  BANCOS_OPCIONES,
+  INGRESOS_FRECUENCIA_OPCIONES,
+  INGRESOS_ORIGEN_OPCIONES,
+} from "../services/models";
+import { formatDate, formatDateTime, timestamp } from "../services/common";
 
-const IngresosScreen = ({ navigation, props }) => {
+const IngresosScreen = ({ route, navigation, props }) => {
   return (
     <Container>
       <Content>
@@ -25,89 +32,37 @@ const IngresosScreen = ({ navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nuevo Ingreso</Text>
         </Button>
-        <ListaIngresos />
+        <ListaIngresos {...route.params} />
       </Content>
     </Container>
   );
 };
 
 const ListaIngresos = (props) => {
-  const data = [
-    {
-      title: "Mensual",
-      data: [
-        {
-          key: "mensual.1",
-          cantidad: 145000000.5,
-          origen: "Facturación como Autónomo",
-          destino: "HSBC 85945849584989",
-          recibido_en: "03/04/2020",
-          creado_en: "03/04/2020",
-        },
-        {
-          key: "mensual.2",
-          cantidad: 32000.0,
-          origen: "Alquiler de Propiedad",
-          destino: "HSBC 85945849584989",
-          recibido_en: "03/04/2020",
-          creado_en: "03/04/2020",
-        },
-        {
-          key: "mensual.3",
-          cantidad: 900000,
-          origen: "Sueldo en Relacion de Dependencia",
-          destino: "HSBC 85945849584989",
-          recibido_en: "03/04/2020",
-          creado_en: "03/04/2020",
-        },
-      ],
-    },
-    {
-      title: "Semanal",
-      data: [
-        {
-          key: "semanal.4",
-          cantidad: 145000000.5,
-          origen: "Sueldo en Relacion de Dependencia",
-          destino: "HSBC 85945849584989",
-          recibido_en: "03/04/2020",
-          creado_en: "03/04/2020",
-        },
-        {
-          key: "semanal.5",
-          cantidad: 32000.0,
-          origen: "Sueldo en Relacion de Dependencia",
-          destino: "HSBC 85945849584989",
-          recibido_en: "03/04/2020",
-          creado_en: "03/04/2020",
-        },
-      ],
-    },
-    {
-      title: "Diario",
-      data: [
-        {
-          key: "diario.6",
-          cantidad: 5000,
-          origen: "Extraordinario",
-          destino: "HSBC 85945849584989",
-          recibido_en: "03/04/2020",
-          creado_en: "03/04/2020",
-        },
-        {
-          key: "diario.7",
-          cantidad: 4000.0,
-          origen: "Otros",
-          destino: "HSBC 85945849584989",
-          recibido_en: "03/04/2020",
-          creado_en: "03/04/2020",
-        },
-      ],
-    },
-  ];
-  const [listData, setListData] = useState(data);
+  const [version, setVersion] = useState(props.version);
+  const [data, setData] = useState([]);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [itemToBeDelete, setItemToBeDelete] = useState({});
+
+  const fetchData = async () => {
+    const objs = await Ingreso.todos();
+    const aux = {
+      diario: [],
+      mensual: [],
+      semanal: [],
+      una_vez: [],
+    };
+    objs.forEach((e) => aux[e.frecuencia].push(e));
+    const auxData = Object.keys(aux).map((key, _) => ({
+      title: INGRESOS_FRECUENCIA_OPCIONES[key],
+      data: aux[key],
+    }));
+    setData(auxData);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version, props.version]);
 
   const closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
@@ -115,19 +70,11 @@ const ListaIngresos = (props) => {
     }
   };
 
-  const deleteRow = ({ rowMap, rowKey }) => {
+  const deleteRow = async ({ rowMap, rowKey }) => {
     setConfirmDialogVisible(false);
     closeRow(rowMap, rowKey);
-    const [section] = rowKey.split(".");
-    const newData = [...listData];
-    const sectionIndex = listData.findIndex(
-      (item) => item.title.toLowerCase() == section
-    );
-    const prevIndex = listData[sectionIndex].data.findIndex(
-      (item) => item.key === rowKey
-    );
-    newData[sectionIndex].data.splice(prevIndex, 1);
-    setListData(newData);
+    await Ingreso.remover(rowKey);
+    setVersion(timestamp());
   };
 
   const onRowDidOpen = (rowKey) => {
@@ -138,15 +85,29 @@ const ListaIngresos = (props) => {
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
         <View style={{ width: 140 }}>
-          <Text>ARS </Text>
-          <B style={{ paddingBottom: 5 }}>{data.item.cantidad}</B>
-          <Text style={{ paddingBottom: 5 }}>{data.item.recibido_en}</Text>
+          <Text style={{ color: "#5073F3" }}>ARS </Text>
+          <B style={{ paddingBottom: 5, color: "#5073F3" }}>
+            {data.item.cantidad}
+          </B>
+          <Text style={{ paddingBottom: 5 }}>
+            {formatDate(data.item.fecha_operacion)}
+          </Text>
+          <Text>
+            <B>
+              {data.item.recurrencia > 0
+                ? "x " + data.item.recurrencia + " veces"
+                : "Indefinido"}{" "}
+            </B>
+          </Text>
         </View>
         <View style={{ width: 250 }}>
           <B>Origen:</B>
-          <Text>{data.item.origen}</Text>
+          <Text>{INGRESOS_ORIGEN_OPCIONES[data.item.origen]}</Text>
           <B>Destino:</B>
-          <Text>{data.item.destino}</Text>
+          <Text>
+            {BANCOS_OPCIONES[data.item.cuenta_banco_asociado].name} #
+            {data.item.cuenta_numero}
+          </Text>
         </View>
       </View>
     </TouchableHighlight>
@@ -156,7 +117,7 @@ const ListaIngresos = (props) => {
     <View style={styles.rowBack}>
       <View>
         <Text>Registrado el:</Text>
-        <Text>{data.item.creado_en}</Text>
+        <Text>{formatDateTime(data.item.fecha_creacion)}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
@@ -204,7 +165,7 @@ const ListaIngresos = (props) => {
       {confirmDelete()}
       <SwipeListView
         useSectionList
-        sections={listData}
+        sections={data}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         renderSectionHeader={renderSectionHeader}

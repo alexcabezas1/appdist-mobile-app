@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet } from "react-native";
 import * as Yup from "yup";
 import { Formik, ErrorMessage } from "formik";
@@ -22,13 +22,42 @@ import {
 } from "native-base";
 import { formStyles } from "./shared/styles";
 
+import {
+  Ingreso,
+  Cuenta,
+  CuentaMovimiento,
+  BANCOS_OPCIONES,
+  INGRESOS_FRECUENCIA_OPCIONES,
+  INGRESOS_ORIGEN_OPCIONES,
+} from "../services/models";
+import { timestamp } from "../services/common";
+import moment from "moment";
+
 export default function RegistrarIngreso({ navigation, props }) {
+  const ingresos_frecuencia_opciones = Object.entries(
+    INGRESOS_FRECUENCIA_OPCIONES
+  );
+  const ingresos_origen_opciones = Object.entries(INGRESOS_ORIGEN_OPCIONES);
+
+  const [version, setVersion] = useState(timestamp());
+  const [cuentas, setCuentas] = useState([]);
+
+  const fetchData = async () => {
+    const objs = await Cuenta.cuentasActivas();
+    setCuentas(objs);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version]);
+
   const initialValues = {
     cantidad: "0.0",
-    recibido_en: undefined,
-    frecuencia: "mensual",
-    origen: "alquiler_propiedad",
-    destino: "banco_ciudad_920398498343",
+    recurrencia: "0",
+    fecha_operacion: undefined,
+    frecuencia: ingresos_frecuencia_opciones[0][0],
+    origen: ingresos_origen_opciones[0][0],
+    cuenta_destino_id: 1,
   };
 
   const validationSchema = Yup.object({
@@ -37,12 +66,23 @@ export default function RegistrarIngreso({ navigation, props }) {
       .min(1, "debe ser mayor a 0")
       .max(999999999, "cifra no permitida")
       .required("es requerida"),
-    recibido_en: Yup.date().when("frecuencia", {
+    recurrencia: Yup.number()
+      .typeError("debe ser un número")
+      .min(0, "debe ser mayor o igual a 0")
+      .max(999999999, "cifra no permitida")
+      .required("es requerida"),
+    fecha_operacion: Yup.date().when("frecuencia", {
       is: "una_vez",
       then: Yup.date().required("es requerido"),
       otherwise: Yup.date().notRequired(),
     }),
   });
+
+  const submitHandler = useCallback(async (form, { resetForm }) => {
+    await Ingreso.registrar(form);
+    resetForm();
+    navigation.navigate("Ingresos", { version: timestamp() });
+  }, []);
 
   return (
     <Container>
@@ -63,7 +103,7 @@ export default function RegistrarIngreso({ navigation, props }) {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values) => console.log(values)}
+          onSubmit={submitHandler}
         >
           {({
             handleChange,
@@ -75,13 +115,8 @@ export default function RegistrarIngreso({ navigation, props }) {
           }) => (
             <Form>
               <Text style={styles.space}></Text>
-              <Item stackedLabel>
+              <Item>
                 <Label>Cantidad</Label>
-                <ErrorMessage
-                  component={Label}
-                  name="cantidad"
-                  style={styles.errorInput}
-                />
                 <Input
                   name="cantidad"
                   keyboardType="number-pad"
@@ -89,6 +124,13 @@ export default function RegistrarIngreso({ navigation, props }) {
                   onChangeText={handleChange("cantidad")}
                   onBlur={handleBlur("cantidad")}
                   value={values.cantidad}
+                />
+              </Item>
+              <Item style={styles.noBorder}>
+                <ErrorMessage
+                  component={Label}
+                  name="cantidad"
+                  style={styles.errorInput}
                 />
               </Item>
               <Item>
@@ -104,17 +146,34 @@ export default function RegistrarIngreso({ navigation, props }) {
                   selectedValue={values.frecuencia}
                   onValueChange={(v) => setFieldValue("frecuencia", v)}
                 >
-                  <Picker.Item label="Mensual" value="mensual" />
-                  <Picker.Item label="Semanal" value="semanal" />
-                  <Picker.Item label="Diario" value="diario" />
-                  <Picker.Item label="Una sola vez" value="una_vez" />
+                  {ingresos_frecuencia_opciones.map((e) => (
+                    <Picker.Item label={e[1]} value={e[0]} key={e[0]} />
+                  ))}
                 </Picker>
+              </Item>
+              <Item>
+                <Label>Recurrencia</Label>
+                <Input
+                  name="recurrencia"
+                  keyboardType="number-pad"
+                  style={{ color: "#5073F3" }}
+                  onChangeText={handleChange("recurrencia")}
+                  onBlur={handleBlur("recurrencia")}
+                  value={values.recurrencia}
+                />
+              </Item>
+              <Item style={styles.noBorder}>
+                <ErrorMessage
+                  component={Label}
+                  name="recurrencia"
+                  style={styles.errorInput}
+                />
               </Item>
               <Item>
                 <Label>Recibido el</Label>
                 <DatePicker
-                  name="recibido_en"
-                  defaultDate={values.recibido_en}
+                  name="fecha_operacion"
+                  defaultDate={values.fecha_operacion}
                   minimumDate={new Date(2000, 1, 1)}
                   maximumDate={new Date(2100, 12, 31)}
                   locale={"es"}
@@ -124,13 +183,18 @@ export default function RegistrarIngreso({ navigation, props }) {
                   androidMode={"default"}
                   placeHolderText="Elegir fecha"
                   textStyle={{ color: "#5073F3" }}
-                  placeHolderTextStyle={{ color: "#d3d3d3" }}
-                  onDateChange={(v) => setFieldValue("recibido_en", v)}
+                  placeHolderTextStyle={{ color: "#5073F3" }}
+                  onDateChange={(v) =>
+                    setFieldValue(
+                      "fecha_operacion",
+                      moment(v).format("YYYY-MM-DD")
+                    )
+                  }
                   disabled={false}
                 />
                 <ErrorMessage
                   component={Label}
-                  name="recibido_en"
+                  name="fecha_operacion"
                   style={styles.errorInput}
                 />
               </Item>
@@ -146,20 +210,9 @@ export default function RegistrarIngreso({ navigation, props }) {
                   selectedValue={values.origen}
                   onValueChange={(v) => setFieldValue("origen", v)}
                 >
-                  <Picker.Item
-                    label="Sueldo en Relación de Dependencia"
-                    value="sueldo_relacion_dependencia"
-                  />
-                  <Picker.Item
-                    label="Alquiler de Propiedad"
-                    value="alquiler_propiedad"
-                  />
-                  <Picker.Item
-                    label="Facturación como Autónomo"
-                    value="facturacion_autonomo"
-                  />
-                  <Picker.Item label="Extraordinario" value="extraordinario" />
-                  <Picker.Item label="Otros" value="otros" />
+                  {ingresos_origen_opciones.map((e) => (
+                    <Picker.Item label={e[1]} value={e[0]} key={e[0]} />
+                  ))}
                 </Picker>
               </Item>
               <Item>
@@ -171,22 +224,18 @@ export default function RegistrarIngreso({ navigation, props }) {
                   placeholder="Destino del Ingreso"
                   placeholderStyle={{ color: "#bfc6ea" }}
                   placeholderIconColor="#007aff"
-                  selectedValue={values.destino}
-                  onValueChange={(v) => setFieldValue("destino", v)}
+                  selectedValue={values.cuenta_destino_id}
+                  onValueChange={(v) => setFieldValue("cuenta_destino_id", v)}
                 >
-                  <Picker.Item
-                    label="HSBC Bank #9085978549584"
-                    value="hsbc_bank_9085978549584"
-                  />
-                  <Picker.Item
-                    label="Banco Frances #584954859484"
-                    value="banco_frances_584954859484"
-                  />
-                  <Picker.Item
-                    label="Banco Ciudad #920398498343"
-                    value="banco_ciudad_920398498343"
-                  />
-                  <Picker.Item label="Efectivo" value="efectivo" />
+                  {cuentas.map((e) => (
+                    <Picker.Item
+                      label={
+                        BANCOS_OPCIONES[e.banco_asociado].name + " #" + e.numero
+                      }
+                      value={e.id}
+                      key={e.id}
+                    />
+                  ))}
                 </Picker>
               </Item>
               <Text style={styles.space}></Text>
