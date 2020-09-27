@@ -26,8 +26,9 @@ import { formStyles } from "./shared/styles";
 import { Cuenta, BANCOS_OPCIONES, timestamp } from "../services/models";
 
 export default function CuentasRegistrar({ navigation, props }) {
+  const bancos_opciones = Object.entries(BANCOS_OPCIONES);
   const initialValues = {
-    banco_asociado: "banco_hsbc",
+    banco_asociado: bancos_opciones[0][0],
     numero: undefined,
     cbu: undefined,
     descripcion: "desc del banco",
@@ -97,7 +98,7 @@ export default function CuentasRegistrar({ navigation, props }) {
                   selectedValue={values.banco_asociado}
                   onValueChange={(v) => setFieldValue("banco_asociado", v)}
                 >
-                  {Object.entries(BANCOS_OPCIONES).map((e) => (
+                  {bancos_opciones.map((e) => (
                     <Picker.Item label={e[1].name} value={e[0]} key={e[0]} />
                   ))}
                 </Picker>

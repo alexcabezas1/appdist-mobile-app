@@ -39,7 +39,7 @@ const ListaCuentas = (props) => {
   const [itemToBeDelete, setItemToBeDelete] = useState({});
 
   const fetchData = async () => {
-    const cuentas = await Cuenta.cuentas_activas();
+    const cuentas = await Cuenta.cuentasActivas();
     setData(cuentas);
   };
 
@@ -97,7 +97,6 @@ const ListaCuentas = (props) => {
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
         onPress={() => {
-          console.log(data.item);
           closeRow(rowMap, data.item.id);
         }}
       >
