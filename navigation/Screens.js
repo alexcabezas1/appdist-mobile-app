@@ -210,12 +210,12 @@ function InversionesStack(props) {
 function PrestamosStack(props) {
   return (
     <Stack.Navigator
-      initialRouteName="Préstamos"
+      initialRouteName="Prestamos"
       mode="card"
       headerMode="screen"
     >
       <Stack.Screen
-        name="Préstamos"
+        name="Prestamos"
         component={PrestamosScreen}
         options={{
           header: ({ navigation, scene }) => (

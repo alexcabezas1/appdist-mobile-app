@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableHighlight,
   View,
+  Dimensions,
 } from "react-native";
 import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -13,8 +14,22 @@ import RegistrarPrestamosScreen from "./PrestamosRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
 import { listStyles } from "./shared/styles";
 import { B } from "./shared/common";
+import {
+  Prestamo,
+  BANCOS_OPCIONES,
+  PRESTAMOS_PLAZO_OPCIONES,
+  PRESTAMOS_ROL_OPCIONES,
+} from "../services/models";
+import {
+  formatDate,
+  formatDateMonthAndYear,
+  formatDateTime,
+  timestamp,
+} from "../services/common";
 
-const PrestamosScreen = ({ navigation, props }) => {
+const { width } = Dimensions.get("screen");
+
+const PrestamosScreen = ({ route, navigation, props }) => {
   return (
     <Container>
       <Content>
@@ -25,99 +40,26 @@ const PrestamosScreen = ({ navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nuevo Préstamo</Text>
         </Button>
-        <ListaPrestamos />
+        <ListaPrestamos {...route.params} />
       </Content>
     </Container>
   );
 };
 
 const ListaPrestamos = (props) => {
-  const data = [
-    {
-      key: "1",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTAMISTA",
-      plazo: "6 meses",
-      cantidad_de_cuotas: 6,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-    {
-      key: "2",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTATARIO",
-      plazo: "3 meses",
-      cantidad_de_cuotas: 12,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-    {
-      key: "3",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTATARIO",
-      plazo: "1 año",
-      cantidad_de_cuotas: 18,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-    {
-      key: "4",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTAMISTA",
-      plazo: "6 meses",
-      cantidad_de_cuotas: 3,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-    {
-      key: "5",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTAMISTA",
-      plazo: "5 años",
-      cantidad_de_cuotas: 12,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-    {
-      key: "6",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTATARIO",
-      plazo: "3 meses",
-      cantidad_de_cuotas: 24,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-    {
-      key: "7",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTAMISTA",
-      plazo: "5 años",
-      cantidad_de_cuotas: 6,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-    {
-      key: "8",
-      capitalprincipal: 20500.5,
-      interes: 21,
-      rol: "PRESTATARIO",
-      plazo: "6 meses",
-      cantidad_de_cuotas: 12,
-      fecha_vencimiento_en: "03/06/2020",
-      fecha_transaccion_en: "03/01/2020",
-    },
-  ];
-
-  const [listData, setListData] = useState(data);
+  const [version, setVersion] = useState(props.version);
+  const [data, setData] = useState([]);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [itemToBeDelete, setItemToBeDelete] = useState({});
+
+  const fetchData = async () => {
+    const objs = await Prestamo.todosActivos();
+    setData(objs);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version, props.version]);
 
   const closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
@@ -125,13 +67,11 @@ const ListaPrestamos = (props) => {
     }
   };
 
-  const deleteRow = ({ rowMap, rowKey }) => {
+  const deleteRow = async ({ rowMap, rowKey }) => {
     setConfirmDialogVisible(false);
     closeRow(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex((item) => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
+    await Prestamo.remover(rowKey);
+    setVersion(timestamp());
   };
 
   const onRowDidOpen = (rowKey) => {
@@ -141,10 +81,10 @@ const ListaPrestamos = (props) => {
   const renderItem = (data) => (
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
-        <View style={{ width: 140 }}>
-          <Text style={{ paddingBottom: 5 }}>
+        <View style={{ width: parseInt(width) * 0.4 }}>
+          <Text style={{ paddingBottom: 5, color: "#5073F3" }}>
             <Text>ARS </Text>
-            <B>{data.item.capitalprincipal}</B>
+            <B>{data.item.capital_principal}</B>
           </Text>
           {data.item.interes > 1 && (
             <View>
@@ -154,25 +94,41 @@ const ListaPrestamos = (props) => {
               </Text>
             </View>
           )}
-          <Text style={{ paddingBottom: 5 }}>{data.item.fecha_transaccion_en}</Text>
-          {data.item.cantidad_de_cuotas > 1 && (
+          <Text style={{ paddingBottom: 5 }}>
+            {formatDate(data.item.fecha_operacion)}
+          </Text>
+          <Text>
+            <B>Plazo: </B>
+            <Text>{PRESTAMOS_PLAZO_OPCIONES[data.item.plazo].name}</Text>
+          </Text>
+        </View>
+        <View style={{ width: parseInt(width) * 0.5 }}>
+          <Text>
+            <B>Como: </B>
+            {PRESTAMOS_ROL_OPCIONES[data.item.rol]}
+          </Text>
+          {data.item.rol === "prestatario" && (
             <View>
               <Text>
-                <B>Cuotas: </B>
-                {data.item.cantidad_de_cuotas}
+                <B>Prestamista: </B>
+                {data.item.nombre_prestamista}
+              </Text>
+            </View>
+          )}
+          <Text style={{ paddingBottom: 5 }}>
+            <B>Cuota vence en el día: </B>
+            {data.item.dia_vencimiento_cuota}
+          </Text>
+          {data.item.debito_automatico == true && (
+            <View>
+              <B>Se débita de:</B>
+              <Text>
+                {BANCOS_OPCIONES[data.item.cuenta_banco_asociado].name} #
+                {data.item.cuenta_numero}
               </Text>
             </View>
           )}
         </View>
-        <View style={{ width: 220 }}>
-          <B>{data.item.rol}</B>
-          <Text><B>Plazo: </B>{data.item.plazo}</Text>
-          <Text style={{ paddingBottom: 5 }}>
-            <B>Fecha de vencimiento: </B>
-            {data.item.fecha_transaccion_en}
-            </Text>
-        </View>
-        
       </View>
     </TouchableHighlight>
   );
@@ -180,7 +136,8 @@ const ListaPrestamos = (props) => {
   const renderHiddenItem = (data, rowMap) => (
     <View style={styles.rowBack}>
       <View>
-        <Text>Nada por aquí</Text>
+        <Text>Registrado el:</Text>
+        <Text>{formatDateTime(data.item.fecha_creacion)}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
@@ -223,7 +180,7 @@ const ListaPrestamos = (props) => {
     <View style={styles.container}>
       {confirmDelete()}
       <SwipeListView
-        data={listData}
+        data={data}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         leftOpenValue={75}
@@ -232,7 +189,7 @@ const ListaPrestamos = (props) => {
         previewOpenValue={-40}
         previewOpenDelay={3000}
         onRowDidOpen={onRowDidOpen}
-        minHeight={100}
+        minHeight={120}
       />
     </View>
   );
@@ -240,6 +197,16 @@ const ListaPrestamos = (props) => {
 
 const styles = {
   ...listStyles,
+  rowFront: {
+    alignItems: "flex-start",
+    backgroundColor: "white",
+    borderBottomColor: "#4f73f2",
+    borderBottomWidth: 1,
+    justifyContent: "center",
+    height: 140,
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
 };
 
 export default PrestamosScreen;

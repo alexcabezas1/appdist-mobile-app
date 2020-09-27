@@ -1,9 +1,7 @@
-import React, { useState } from "react";
-import { StyleSheet } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { StyleSheet, View } from "react-native";
 import * as Yup from "yup";
 import { Formik, ErrorMessage } from "formik";
-import { formStyles } from "./shared/styles";
-
 import {
   Container,
   Header,
@@ -19,61 +17,97 @@ import {
   Form,
   Left,
   Right,
+  ListItem,
+  Body,
+  CheckBox,
 } from "native-base";
 
+import { formStyles } from "./shared/styles";
+import {
+  Cuenta,
+  Prestamo,
+  BANCOS_OPCIONES,
+  PRESTAMOS_PLAZO_OPCIONES,
+  PRESTAMOS_ROL_OPCIONES,
+} from "../services/models";
+import { formatDate, timestamp } from "../services/common";
+import moment from "moment";
+
 export default function RegistrarPrestamo({ navigation, props }) {
-  const plazo_del_prestamo = [
-    "3_meses",
-    "6_meses",
-    "1_año",
-    "3_años",
-    "5_años",
-  ];
+  const prestamos_plazo_opciones = Object.entries(PRESTAMOS_PLAZO_OPCIONES);
+  const prestamos_rol_opciones = Object.entries(PRESTAMOS_ROL_OPCIONES);
 
   const initialValues = {
-    capitalprincipal: "0.0",
+    capital_principal: "0.0",
     interes: "0.0",
-    cantidad_de_cuotas: "1",
-    rol: "prestamista",
-    plazo: "3_meses",
-    fecha_vencimiento_en: undefined,
-    fecha_transaccion_en: undefined,
+    dia_vencimiento_cuota: "1",
+    plazo: prestamos_plazo_opciones[0][0],
+    rol: prestamos_rol_opciones[0][0],
+    nombre_prestamista: "",
+    debito_automatico: false,
+    cuenta_id: 0,
+    fecha_operacion: undefined,
   };
 
   const validationSchema = Yup.object({
-    capitalprincipal: Yup.number()
+    capital_principal: Yup.number()
       .typeError("debe ser un número")
       .min(1, "debe ser mayor a 0")
       .max(999999999, "cifra no permitida")
-      .required("Es requerido"),
+      .required("es requerido"),
     interes: Yup.number()
-      .typeError("debe ser un número")
-      .min(1, "debe ser mayor a 0")
-      .max(999999999, "cifra no permitida")
-      .required("Es requerido"),
-    cuotas_prestamo_por_vencer: Yup.string().when("rol", {
-      is: "cuota_de_prestamo",
-      then: Yup.string().test("required", "*", (v) => v != "no_aplica"),
+      .typeError("el interés debe ser un número")
+      .min(0, "el interés debe ser mayor o igual a 0")
+      .max(999999999, "cifra no permitida en el interés")
+      .required("es requerido"),
+    cuenta_id: Yup.number().when(["debito_automatico", "rol"], {
+      is: (debito_automatico, rol) =>
+        debito_automatico && rol === "prestatario",
+      then: Yup.number().test("required", "*", (v) => v != 0),
+      otherwise: Yup.number().notRequired(),
+    }),
+    nombre_prestamista: Yup.string().when("rol", {
+      is: "prestatario",
+      then: Yup.string().required("*"),
       otherwise: Yup.string().notRequired(),
     }),
-    cantidad_de_cuotas: Yup.number()
-      .typeError("debe ser un número")
-      .min(1, "debe ser mayor a 0")
-      .max(36, "cifra no permitida"),
-    fecha_vencimiento_en: Yup.date().required("*"),
+    fecha_operacion: Yup.date().required("*"),
   });
+
+  let dias_del_mes = [];
+  for (let i = 1; i < 31; i++) {
+    dias_del_mes.push(i.toString());
+  }
+
+  const [version, setVersion] = useState(timestamp());
+  const [cuentas, setCuentas] = useState([]);
+
+  const fetchData = async () => {
+    const cuentas = await Cuenta.cuentasActivas();
+    setCuentas(cuentas);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version]);
+
+  const submitHandler = useCallback(async (form, { resetForm }) => {
+    await Prestamo.registrar(form);
+    resetForm();
+    navigation.navigate("Prestamos", { version: timestamp() });
+  }, []);
 
   return (
     <Container>
       <Header>
         <Left>
-          <Button transparent onPress={() => navigation.navigate("Préstamos")}>
+          <Button transparent onPress={() => navigation.navigate("Prestamos")}>
             <Icon name="arrow-back" />
             <Text>Volver</Text>
           </Button>
         </Left>
         <Right>
-          <Button transparent onPress={() => navigation.navigate("Préstamos")}>
+          <Button transparent onPress={() => navigation.navigate("Prestamos")}>
             <Text>Cancelar</Text>
           </Button>
         </Right>
@@ -82,7 +116,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values) => console.log(values)}
+          onSubmit={submitHandler}
         >
           {({
             handleChange,
@@ -94,29 +128,26 @@ export default function RegistrarPrestamo({ navigation, props }) {
           }) => (
             <Form>
               <Text style={styles.space}></Text>
-              <Item stackedLabel>
-                <Label>Capital principal</Label>
-                <ErrorMessage
-                  component={Label}
-                  name="capitalprincipal"
-                  style={styles.errorInput}
-                />
+              <Item style={styles.noBorder}>
+                <Label>Capital Principal:</Label>
                 <Input
-                  name="capitalprincipal"
+                  name="capital_principal"
                   keyboardType="number-pad"
                   style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("capitalprincipal")}
-                  onBlur={handleBlur("capitalprincipal")}
-                  value={values.capitalprincipal}
+                  onChangeText={handleChange("capital_principal")}
+                  onBlur={handleBlur("capital_principal")}
+                  value={values.capital_principal}
                 />
               </Item>
-              <Item stackedLabel>
-                <Label>Interés %</Label>
+              <Item>
                 <ErrorMessage
                   component={Label}
-                  name="interes"
+                  name="capital_principal"
                   style={styles.errorInput}
                 />
+              </Item>
+              <Item style={styles.noBorder}>
+                <Label>Interés %</Label>
                 <Input
                   name="interes"
                   keyboardType="number-pad"
@@ -125,95 +156,57 @@ export default function RegistrarPrestamo({ navigation, props }) {
                   onBlur={handleBlur("interes")}
                   value={values.interes}
                 />
-              </Item>
-              <Item>
-                <Label>Cantidad de Cuotas</Label>
-                <ErrorMessage
-                  component={Label}
-                  name="cantidad_de_cuotas"
-                  style={styles.errorInput}
-                />
-                <Input
-                  name="cantidad_de_cuotas"
-                  keyboardType="number-pad"
-                  style={{ color: "#5073F3" }}
-                  onChangeText={handleChange("cantidad_de_cuotas")}
-                  onBlur={handleBlur("cantidad_de_cuotas")}
-                  value={values.cantidad_de_cuotas}
-                />
-              </Item>
-              <Item>
-                <Label>Plazo del préstamo</Label>
+                <Label>Plazo:</Label>
                 <Picker
                   name="plazo"
                   mode="dropdown"
                   iosIcon={<Icon name="arrow-down" />}
                   style={{ width: undefined, color: "#5073F3" }}
-                  placeholder="Plazo"
+                  placeholder="plazo"
                   placeholderStyle={{ color: "#bfc6ea" }}
                   placeholderIconColor="#007aff"
                   selectedValue={values.plazo}
                   onValueChange={(v) => setFieldValue("plazo", v)}
                 >
-                  <Picker.Item label="3 meses" value="3_meses" />
-                  <Picker.Item label="6 meses" value="6_meses" />
-                  <Picker.Item label="1 año" value="1_año" />
-                  <Picker.Item label="3 años" value="3_años" />
-                  <Picker.Item label="5 años" value="5_años" />
+                  {prestamos_plazo_opciones.map((e) => (
+                    <Picker.Item label={e[1].name} value={e[0]} key={e[0]} />
+                  ))}
                 </Picker>
               </Item>
-
-              <Item>
-                <Label>Fecha de vencimiento:</Label>
+              <Item style={styles.noBorder}>
                 <ErrorMessage
                   component={Label}
-                  name="fecha_vencimiento_en"
+                  name="interes"
                   style={styles.errorInput}
-                />
-                <DatePicker
-                  name="fecha_vencimiento_en"
-                  defaultDate={values.fecha_vencimiento_en}
-                  minimumDate={new Date(2000, 1, 1)}
-                  maximumDate={new Date(2100, 12, 31)}
-                  locale={"es"}
-                  timeZoneOffsetInMinutes={undefined}
-                  modalTransparent={false}
-                  animationType={"fade"}
-                  androidMode={"default"}
-                  placeHolderText="Elegir fecha"
-                  textStyle={{ color: "#5073F3" }}
-                  placeHolderTextStyle={{ color: "#d3d3d3" }}
-                  onDateChange={(v) => setFieldValue("fecha_vencimiento_en", v)}
-                  disabled={false}
-                />
-              </Item>
-
-              <Item>
-                <Label>Fecha de transacción:</Label>
-                <ErrorMessage
-                  component={Label}
-                  name="fecha_transaccion_en"
-                  style={styles.errorInput}
-                />
-                <DatePicker
-                  name="fecha_transaccion_en"
-                  defaultDate={values.fecha_transaccion_en}
-                  minimumDate={new Date(2000, 1, 1)}
-                  maximumDate={new Date(2100, 12, 31)}
-                  locale={"es"}
-                  timeZoneOffsetInMinutes={undefined}
-                  modalTransparent={false}
-                  animationType={"fade"}
-                  androidMode={"default"}
-                  placeHolderText="Elegir fecha"
-                  textStyle={{ color: "#5073F3" }}
-                  placeHolderTextStyle={{ color: "#d3d3d3" }}
-                  onDateChange={(v) => setFieldValue("fecha_transaccion_en", v)}
-                  disabled={false}
                 />
               </Item>
               <Item>
-                <Label>Rol</Label>
+                <Label>La cuota vence el día:</Label>
+                <ErrorMessage
+                  component={Label}
+                  name="dia_vencimiento_cuota"
+                  style={styles.errorInput}
+                />
+                <Picker
+                  name="dia_vencimiento_cuota"
+                  mode="dropdown"
+                  iosIcon={<Icon name="arrow-down" />}
+                  style={{ width: undefined, color: "#5073F3" }}
+                  placeholder="dia_vencimiento_cuota"
+                  placeholderStyle={{ color: "#bfc6ea" }}
+                  placeholderIconColor="#007aff"
+                  selectedValue={values.dia_vencimiento_cuota}
+                  onValueChange={(v) =>
+                    setFieldValue("dia_vencimiento_cuota", v)
+                  }
+                >
+                  {dias_del_mes.map((e) => (
+                    <Picker.Item label={e} value={e} key={e} />
+                  ))}
+                </Picker>
+              </Item>
+              <Item>
+                <Label>Rol:</Label>
                 <Picker
                   name="rol"
                   mode="dropdown"
@@ -225,11 +218,109 @@ export default function RegistrarPrestamo({ navigation, props }) {
                   selectedValue={values.rol}
                   onValueChange={(v) => setFieldValue("rol", v)}
                 >
-                  <Picker.Item label="Prestamista" value="prestamista" />
-                  <Picker.Item label="Prestatario" value="prestatario" />
+                  {prestamos_rol_opciones.map((e) => (
+                    <Picker.Item label={e[1]} value={e[0]} key={e[0]} />
+                  ))}
                 </Picker>
               </Item>
-
+              {values.rol === "prestatario" && (
+                <View>
+                  <Item>
+                    <Label>Prestamista</Label>
+                    <ErrorMessage
+                      component={Label}
+                      name="nombre_prestamista"
+                      style={styles.errorInput}
+                    />
+                    <Input
+                      name="nombre_prestamista"
+                      placeholder="Colocar el nombre"
+                      placeholderTextColor="#5073F3"
+                      style={{ color: "#5073F3" }}
+                      onChangeText={handleChange("nombre_prestamista")}
+                      onBlur={handleBlur("nombre_prestamista")}
+                      value={values.nombre_prestamista}
+                    />
+                  </Item>
+                  <ListItem
+                    onPress={(v) =>
+                      setFieldValue(
+                        "debito_automatico",
+                        !values.debito_automatico
+                      )
+                    }
+                  >
+                    <CheckBox
+                      checked={values.debito_automatico}
+                      color="#5073F3"
+                    />
+                    <Body>
+                      <Text style={{ color: "#5073F3" }}>
+                        Se paga mediante Débito Automático
+                      </Text>
+                    </Body>
+                  </ListItem>
+                </View>
+              )}
+              {values.debito_automatico == true && (
+                <Item>
+                  <Label>Cuenta Bancaria: </Label>
+                  <ErrorMessage
+                    component={Label}
+                    name="cuenta_id"
+                    style={styles.errorInput}
+                  />
+                  <Picker
+                    mode="dropdown"
+                    iosIcon={<Icon name="arrow-down" />}
+                    style={{ width: undefined, color: "#5073F3" }}
+                    selectedValue={values.cuenta_id}
+                    onValueChange={(v) => setFieldValue("cuenta_id", v)}
+                  >
+                    <Picker.Item label="Elegir cuenta" value={0} />
+                    {cuentas.map((e) => (
+                      <Picker.Item
+                        label={
+                          BANCOS_OPCIONES[e.banco_asociado].name +
+                          " #" +
+                          e.numero
+                        }
+                        value={e.id}
+                        key={e.id}
+                      />
+                    ))}
+                  </Picker>
+                </Item>
+              )}
+              <Item>
+                <Label>Fecha de Transacción:</Label>
+                <ErrorMessage
+                  component={Label}
+                  name="fecha_operacion"
+                  style={styles.errorInput}
+                />
+                <DatePicker
+                  name="fecha_operacion"
+                  defaultDate={values.fecha_operacion}
+                  minimumDate={new Date(2000, 1, 1)}
+                  maximumDate={new Date(2100, 12, 31)}
+                  locale={"es"}
+                  timeZoneOffsetInMinutes={undefined}
+                  modalTransparent={false}
+                  animationType={"fade"}
+                  androidMode={"default"}
+                  placeHolderText="Elegir fecha"
+                  textStyle={{ color: "#5073F3" }}
+                  placeHolderTextStyle={{ color: "#5073F3" }}
+                  onDateChange={(v) =>
+                    setFieldValue(
+                      "fecha_operacion",
+                      moment(v).format("YYYY-MM-DD")
+                    )
+                  }
+                  disabled={false}
+                />
+              </Item>
               <Text style={styles.space}></Text>
               <Button block primary onPress={handleSubmit} title="Submit">
                 <Text>Guardar</Text>
