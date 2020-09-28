@@ -20,6 +20,7 @@ import {
   ListItem,
   CheckBox,
   Body,
+  View,
 } from "native-base";
 import { UNSELECTED_VALUE } from "./shared/common";
 import { Cuenta, Tarjeta, BANCOS_OPCIONES } from "../services/models";
@@ -35,7 +36,7 @@ export default function RegistrarTarjeta({ route, navigation, props }) {
     cuenta_id: 0,
     mes_vencimiento: "01",
     anio_vencimiento: years[0],
-    debito_automatico: true,
+    debito_automatico: false,
     fecha_cierre_resumen: undefined,
     fecha_vencimiento_resumen: undefined,
   };
@@ -49,8 +50,16 @@ export default function RegistrarTarjeta({ route, navigation, props }) {
       then: Yup.number().test("required", "*", (v) => v != 0),
       otherwise: Yup.number().notRequired(),
     }),
-    fecha_cierre_resumen: Yup.date().required("*"),
-    fecha_vencimiento_resumen: Yup.date().required("*"),
+    fecha_cierre_resumen: Yup.date().when("tipo", {
+      is: "credito",
+      then: Yup.date().required("*"),
+      otherwise: Yup.date().notRequired(),
+    }),
+    fecha_vencimiento_resumen: Yup.date().when("tipo", {
+      is: "credito",
+      then: Yup.date().required("*"),
+      otherwise: Yup.date().notRequired(),
+    }),
   });
 
   const [version, setVersion] = useState(timestamp());
@@ -88,10 +97,14 @@ export default function RegistrarTarjeta({ route, navigation, props }) {
       cuenta_id,
       ultimos_numeros,
       fecha_vencimiento,
-      fecha_cierre_resumen: moment(fecha_cierre_resumen).format("YYYY-MM-DD"),
-      fecha_vencimiento_resumen: moment(fecha_vencimiento_resumen).format(
-        "YYYY-MM-DD"
-      ),
+      fecha_cierre_resumen:
+        tipo === "credito"
+          ? moment(fecha_cierre_resumen).format("YYYY-MM-DD")
+          : null,
+      fecha_vencimiento_resumen:
+        tipo === "credito"
+          ? moment(fecha_vencimiento_resumen).format("YYYY-MM-DD")
+          : null,
       debito_automatico: esDebitoAutomatico,
     });
     await obj.save();
@@ -240,18 +253,26 @@ export default function RegistrarTarjeta({ route, navigation, props }) {
                   ))}
                 </Picker>
               </Item>
-              <ListItem
-                onPress={(v) =>
-                  setFieldValue("debito_automatico", !values.debito_automatico)
-                }
-              >
-                <CheckBox checked={values.debito_automatico} color="#5073F3" />
-                <Body>
-                  <Text style={{ color: "#5073F3" }}>
-                    Se paga mediante Débito Automático
-                  </Text>
-                </Body>
-              </ListItem>
+              {values.tipo === "credito" && (
+                <ListItem
+                  onPress={(v) =>
+                    setFieldValue(
+                      "debito_automatico",
+                      !values.debito_automatico
+                    )
+                  }
+                >
+                  <CheckBox
+                    checked={values.debito_automatico}
+                    color="#5073F3"
+                  />
+                  <Body>
+                    <Text style={{ color: "#5073F3" }}>
+                      Se paga mediante Débito Automático
+                    </Text>
+                  </Body>
+                </ListItem>
+              )}
               <Item>
                 <Label>Cuenta Bancaria: </Label>
                 <ErrorMessage
@@ -278,58 +299,65 @@ export default function RegistrarTarjeta({ route, navigation, props }) {
                   ))}
                 </Picker>
               </Item>
-              <Item>
-                <Label>Cierre de Resumen: </Label>
-                <ErrorMessage
-                  component={Label}
-                  name="fecha_cierre_resumen"
-                  style={styles.errorInput}
-                />
-                <DatePicker
-                  format
-                  name="fecha_cierre_resumen"
-                  defaultDate={values.fecha_cierre_resumen}
-                  minimumDate={new Date(2000, 1, 1)}
-                  maximumDate={new Date(2100, 12, 31)}
-                  locale={"es"}
-                  timeZoneOffsetInMinutes={undefined}
-                  modalTransparent={false}
-                  animationType={"fade"}
-                  androidMode={"default"}
-                  placeHolderText="Elegir fecha"
-                  textStyle={{ color: "#5073F3" }}
-                  placeHolderTextStyle={{ color: "#5073F3" }}
-                  onDateChange={(v) => setFieldValue("fecha_cierre_resumen", v)}
-                  disabled={false}
-                />
-              </Item>
-              <Item>
-                <Label>Vencimiento del Resumen: </Label>
-                <ErrorMessage
-                  component={Label}
-                  name="fecha_vencimiento_resumen"
-                  style={styles.errorInput}
-                />
-                <DatePicker
-                  format
-                  name="fecha_vencimiento_resumen"
-                  defaultDate={values.fecha_vencimiento_resumen}
-                  minimumDate={new Date(2000, 1, 1)}
-                  maximumDate={new Date(2100, 12, 31)}
-                  locale={"es"}
-                  timeZoneOffsetInMinutes={undefined}
-                  modalTransparent={false}
-                  animationType={"fade"}
-                  androidMode={"default"}
-                  placeHolderText="Elegir fecha"
-                  textStyle={{ color: "#5073F3" }}
-                  placeHolderTextStyle={{ color: "#5073F3" }}
-                  onDateChange={(v) =>
-                    setFieldValue("fecha_vencimiento_resumen", v)
-                  }
-                  disabled={false}
-                />
-              </Item>
+              {values.tipo === "credito" && (
+                <React.Fragment>
+                  <Item>
+                    <Label>Cierre de Resumen: </Label>
+                    <ErrorMessage
+                      component={Label}
+                      name="fecha_cierre_resumen"
+                      style={styles.errorInput}
+                    />
+                    <DatePicker
+                      format
+                      name="fecha_cierre_resumen"
+                      defaultDate={values.fecha_cierre_resumen}
+                      minimumDate={new Date(2000, 1, 1)}
+                      maximumDate={new Date(2100, 12, 31)}
+                      locale={"es"}
+                      timeZoneOffsetInMinutes={undefined}
+                      modalTransparent={false}
+                      animationType={"fade"}
+                      androidMode={"default"}
+                      placeHolderText="Elegir fecha"
+                      textStyle={{ color: "#5073F3" }}
+                      placeHolderTextStyle={{ color: "#5073F3" }}
+                      onDateChange={(v) =>
+                        setFieldValue("fecha_cierre_resumen", v)
+                      }
+                      disabled={false}
+                    />
+                  </Item>
+                  <Item>
+                    <Label>Vencimiento del Resumen: </Label>
+                    <ErrorMessage
+                      component={Label}
+                      name="fecha_vencimiento_resumen"
+                      style={styles.errorInput}
+                    />
+                    <DatePicker
+                      format
+                      name="fecha_vencimiento_resumen"
+                      defaultDate={values.fecha_vencimiento_resumen}
+                      minimumDate={new Date(2000, 1, 1)}
+                      maximumDate={new Date(2100, 12, 31)}
+                      locale={"es"}
+                      timeZoneOffsetInMinutes={undefined}
+                      modalTransparent={false}
+                      animationType={"fade"}
+                      androidMode={"default"}
+                      placeHolderText="Elegir fecha"
+                      textStyle={{ color: "#5073F3" }}
+                      placeHolderTextStyle={{ color: "#5073F3" }}
+                      onDateChange={(v) =>
+                        setFieldValue("fecha_vencimiento_resumen", v)
+                      }
+                      disabled={false}
+                    />
+                  </Item>
+                </React.Fragment>
+              )}
+
               <Text style={styles.space}></Text>
               <Button block primary onPress={handleSubmit} title="Submit">
                 <Text>Guardar</Text>

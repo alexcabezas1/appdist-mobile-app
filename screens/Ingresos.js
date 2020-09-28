@@ -52,7 +52,7 @@ const ListaIngresos = (props) => {
       semanal: [],
       una_vez: [],
     };
-    objs.forEach((e) => aux[e.frecuencia].push(e));
+    objs.forEach((e) => aux[e.frecuencia].push({ ...e, key: e.id.toString() }));
     const auxData = Object.keys(aux).map((key, _) => ({
       title: INGRESOS_FRECUENCIA_OPCIONES[key],
       data: aux[key],

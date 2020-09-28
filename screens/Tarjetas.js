@@ -54,7 +54,8 @@ const ListaTarjetas = (props) => {
 
   const fetchData = async () => {
     const objs = await Tarjeta.tarjetasActivas();
-    setData(objs);
+    const objsWithKey = objs.map((e) => ({ ...e, key: e.id.toString() }));
+    setData(objsWithKey);
   };
 
   useEffect(() => {
@@ -95,10 +96,14 @@ const ListaTarjetas = (props) => {
           )}
         </View>
         <View style={{ width: parseInt(width) * 0.5 }}>
-          <B>Cierre Resumen:</B>
-          <Text>{formatDate(data.item.fecha_cierre_resumen)}</Text>
-          <B>Vencimiento Resumen:</B>
-          <Text>{formatDate(data.item.fecha_vencimiento_resumen)}</Text>
+          {data.item.tipo === "credito" && (
+            <View>
+              <B>Cierre Resumen:</B>
+              <Text>{formatDate(data.item.fecha_cierre_resumen)}</Text>
+              <B>Vencimiento Resumen:</B>
+              <Text>{formatDate(data.item.fecha_vencimiento_resumen)}</Text>
+            </View>
+          )}
           {(data.item.debito_automatico || data.item.tipo === "debito") && (
             <View>
               <B>Cuenta Bancaria:</B>

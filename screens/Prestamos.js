@@ -54,7 +54,8 @@ const ListaPrestamos = (props) => {
 
   const fetchData = async () => {
     const objs = await Prestamo.todosActivos();
-    setData(objs);
+    const objsWithKey = objs.map((e) => ({ ...e, key: e.id.toString() }));
+    setData(objsWithKey);
   };
 
   useEffect(() => {
@@ -107,15 +108,11 @@ const ListaPrestamos = (props) => {
             <B>Como: </B>
             {PRESTAMOS_ROL_OPCIONES[data.item.rol]}
           </Text>
-          {data.item.rol === "prestatario" && (
-            <View>
-              <Text>
-                <B>Prestamista: </B>
-                {data.item.nombre_prestamista}
-              </Text>
-            </View>
-          )}
-          <Text style={{ paddingBottom: 5 }}>
+          <Text>
+            <B>Descripción: </B>
+            {data.item.descripcion}
+          </Text>
+          <Text>
             <B>Cuota vence en el día: </B>
             {data.item.dia_vencimiento_cuota}
           </Text>

@@ -30,7 +30,7 @@ import {
   PRESTAMOS_PLAZO_OPCIONES,
   PRESTAMOS_ROL_OPCIONES,
 } from "../services/models";
-import { formatDate, timestamp } from "../services/common";
+import { timestamp } from "../services/common";
 import moment from "moment";
 
 export default function RegistrarPrestamo({ navigation, props }) {
@@ -43,7 +43,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
     dia_vencimiento_cuota: "1",
     plazo: prestamos_plazo_opciones[0][0],
     rol: prestamos_rol_opciones[0][0],
-    nombre_prestamista: "",
+    descripcion: "",
     debito_automatico: false,
     cuenta_id: 0,
     fecha_operacion: undefined,
@@ -58,7 +58,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
     interes: Yup.number()
       .typeError("el interés debe ser un número")
       .min(0, "el interés debe ser mayor o igual a 0")
-      .max(999999999, "cifra no permitida en el interés")
+      .max(100, "cifra no permitida en el interés")
       .required("es requerido"),
     cuenta_id: Yup.number().when(["debito_automatico", "rol"], {
       is: (debito_automatico, rol) =>
@@ -66,11 +66,7 @@ export default function RegistrarPrestamo({ navigation, props }) {
       then: Yup.number().test("required", "*", (v) => v != 0),
       otherwise: Yup.number().notRequired(),
     }),
-    nombre_prestamista: Yup.string().when("rol", {
-      is: "prestatario",
-      then: Yup.string().required("*"),
-      otherwise: Yup.string().notRequired(),
-    }),
+    descripcion: Yup.string().required("*"),
     fecha_operacion: Yup.date().required("*"),
   });
 
@@ -223,75 +219,74 @@ export default function RegistrarPrestamo({ navigation, props }) {
                   ))}
                 </Picker>
               </Item>
+              <Item>
+                <Label>Descripcion:</Label>
+                <ErrorMessage
+                  component={Label}
+                  name="descripcion"
+                  style={styles.errorInput}
+                />
+                <Input
+                  name="descripcion"
+                  placeholder="Prestamista/Prestatario"
+                  placeholderTextColor="#5073F3"
+                  style={{ color: "#5073F3" }}
+                  onChangeText={handleChange("descripcion")}
+                  onBlur={handleBlur("descripcion")}
+                  value={values.descripcion}
+                />
+              </Item>
               {values.rol === "prestatario" && (
-                <View>
+                <ListItem
+                  onPress={(v) =>
+                    setFieldValue(
+                      "debito_automatico",
+                      !values.debito_automatico
+                    )
+                  }
+                >
+                  <CheckBox
+                    checked={values.debito_automatico}
+                    color="#5073F3"
+                  />
+                  <Body>
+                    <Text style={{ color: "#5073F3" }}>
+                      Se paga mediante Débito Automático
+                    </Text>
+                  </Body>
+                </ListItem>
+              )}
+              {values.debito_automatico == true &&
+                values.rol === "prestatario" && (
                   <Item>
-                    <Label>Prestamista</Label>
+                    <Label>Cuenta Bancaria: </Label>
                     <ErrorMessage
                       component={Label}
-                      name="nombre_prestamista"
+                      name="cuenta_id"
                       style={styles.errorInput}
                     />
-                    <Input
-                      name="nombre_prestamista"
-                      placeholder="Colocar el nombre"
-                      placeholderTextColor="#5073F3"
-                      style={{ color: "#5073F3" }}
-                      onChangeText={handleChange("nombre_prestamista")}
-                      onBlur={handleBlur("nombre_prestamista")}
-                      value={values.nombre_prestamista}
-                    />
+                    <Picker
+                      mode="dropdown"
+                      iosIcon={<Icon name="arrow-down" />}
+                      style={{ width: undefined, color: "#5073F3" }}
+                      selectedValue={values.cuenta_id}
+                      onValueChange={(v) => setFieldValue("cuenta_id", v)}
+                    >
+                      <Picker.Item label="Elegir cuenta" value={0} />
+                      {cuentas.map((e) => (
+                        <Picker.Item
+                          label={
+                            BANCOS_OPCIONES[e.banco_asociado].name +
+                            " #" +
+                            e.numero
+                          }
+                          value={e.id}
+                          key={e.id}
+                        />
+                      ))}
+                    </Picker>
                   </Item>
-                  <ListItem
-                    onPress={(v) =>
-                      setFieldValue(
-                        "debito_automatico",
-                        !values.debito_automatico
-                      )
-                    }
-                  >
-                    <CheckBox
-                      checked={values.debito_automatico}
-                      color="#5073F3"
-                    />
-                    <Body>
-                      <Text style={{ color: "#5073F3" }}>
-                        Se paga mediante Débito Automático
-                      </Text>
-                    </Body>
-                  </ListItem>
-                </View>
-              )}
-              {values.debito_automatico == true && (
-                <Item>
-                  <Label>Cuenta Bancaria: </Label>
-                  <ErrorMessage
-                    component={Label}
-                    name="cuenta_id"
-                    style={styles.errorInput}
-                  />
-                  <Picker
-                    mode="dropdown"
-                    iosIcon={<Icon name="arrow-down" />}
-                    style={{ width: undefined, color: "#5073F3" }}
-                    selectedValue={values.cuenta_id}
-                    onValueChange={(v) => setFieldValue("cuenta_id", v)}
-                  >
-                    <Picker.Item label="Elegir cuenta" value={0} />
-                    {cuentas.map((e) => (
-                      <Picker.Item
-                        label={
-                          BANCOS_OPCIONES[e.banco_asociado].name +
-                          " #" +
-                          e.numero
-                        }
-                        value={e.id}
-                        key={e.id}
-                      />
-                    ))}
-                  </Picker>
-                </Item>
-              )}
+                )}
               <Item>
                 <Label>Fecha de Transacción:</Label>
                 <ErrorMessage

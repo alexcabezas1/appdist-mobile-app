@@ -39,8 +39,9 @@ const ListaCuentas = (props) => {
   const [itemToBeDelete, setItemToBeDelete] = useState({});
 
   const fetchData = async () => {
-    const cuentas = await Cuenta.cuentasActivas();
-    setData(cuentas);
+    const objs = await Cuenta.cuentasActivas();
+    const objsWithKey = objs.map((e) => ({ ...e, key: e.id.toString() }));
+    setData(objsWithKey);
   };
 
   useEffect(() => {
