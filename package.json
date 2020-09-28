@@ -31,6 +31,7 @@
     "expo-sqlite-orm": "^1.5.6",
     "formik": "^2.1.5",
     "galio-framework": "~0.6.3",
+    "lodash": "^4.17.20",
     "moment": "^2.29.0",
     "native-base": "^2.13.14",
     "node-fetch": "^2.6.1",

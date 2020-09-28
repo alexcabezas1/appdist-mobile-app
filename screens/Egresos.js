@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableHighlight,
   View,
+  Dimensions,
 } from "react-native";
 import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -13,8 +14,27 @@ import RegistrarEgresoScreen from "./EgresosRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
 import { listStyles } from "./shared/styles";
 import { B } from "./shared/common";
+import {
+  Egreso,
+  EGRESOS_MEDIO_PAGO_OPCIONES,
+  EGRESOS_RUBROS_OPCIONES,
+  BANCOS_OPCIONES,
+  TARJETAS_ENTIDAD_OPCIONES,
+  TARJETAS_TIPO_OPCIONES,
+} from "../services/models";
+import {
+  formatDate,
+  formatDateMonthAndYear,
+  formatDateTime,
+  formatNumber,
+  fotmatNumber,
+  timestamp,
+} from "../services/common";
+import _ from "lodash";
 
-const EgresosScreen = ({ navigation, props }) => {
+const { width } = Dimensions.get("screen");
+
+const EgresosScreen = ({ route, navigation, props }) => {
   return (
     <Container>
       <Content>
@@ -25,115 +45,27 @@ const EgresosScreen = ({ navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nuevo Egreso</Text>
         </Button>
-        <ListaEgresos />
+        <ListaEgresos {...route.params} />
       </Content>
     </Container>
   );
 };
 
 const ListaEgresos = (props) => {
-  const data = [
-    {
-      key: "1",
-      cantidad: 20500.5,
-      motivo_del_gasto: "Alquiler",
-      medio_de_pago: "Transferencia",
-      cuotas_prestamo_por_vencer: undefined,
-      numero_de_cuotas: 1,
-      fecha_gastado_en: "03/01/2020",
-      tarjeta: undefined,
-      cuenta_bancaria: "HSBC Bank #9085978549584",
-      fecha_creado_en: "03/01/2020",
-    },
-    {
-      key: "2",
-      cantidad: 100000.5,
-      motivo_del_gasto: "Reparación en el Hogar",
-      medio_de_pago: "Transferencia",
-      cuotas_prestamo_por_vencer: undefined,
-      numero_de_cuotas: 1,
-      fecha_gastado_en: "03/0/2020",
-      tarjeta: undefined,
-      cuenta_bancaria: "HSBC Bank #9085978549584",
-      fecha_creado_en: "03/0/2020",
-    },
-    {
-      key: "3",
-      cantidad: 4500.7,
-      motivo_del_gasto: "Expensas",
-      medio_de_pago: "Transferencia",
-      cuotas_prestamo_por_vencer: undefined,
-      numero_de_cuotas: 1,
-      fecha_gastado_en: "10/01/2020",
-      tarjeta: undefined,
-      cuenta_bancaria: "Banco Ciudad #920398498343",
-      fecha_creado_en: "10/01/2020",
-    },
-    {
-      key: "4",
-      cantidad: 12000,
-      motivo_del_gasto: "Educación",
-      medio_de_pago: "Tarjeta de Crédito",
-      cuotas_prestamo_por_vencer: undefined,
-      numero_de_cuotas: 1,
-      fecha_gastado_en: "14/01/2020",
-      tarjeta: "VISA 3243 4343 0988 1339",
-      cuenta_bancaria: undefined,
-      fecha_creado_en: "14/01/2020",
-    },
-    {
-      key: "5",
-      cantidad: 12000,
-      motivo_del_gasto: "Compra de Criptomonedas",
-      medio_de_pago: "Transferencia",
-      cuotas_prestamo_por_vencer: undefined,
-      numero_de_cuotas: 1,
-      fecha_gastado_en: "14/01/2020",
-      tarjeta: undefined,
-      cuenta_bancaria: "Banco Ciudad #920398498343",
-      fecha_creado_en: "14/01/2020",
-    },
-    {
-      key: "6",
-      cantidad: 9500.23,
-      motivo_del_gasto: "Impuestos Nacionales",
-      medio_de_pago: "Tarjeta de Débito",
-      cuotas_prestamo_por_vencer: undefined,
-      numero_de_cuotas: 1,
-      fecha_gastado_en: "31/03/2020",
-      tarjeta: "VISA Débito 4435 7676 3233 2134",
-      cuenta_bancaria: undefined,
-      fecha_creado_en: "31/03/2020",
-    },
-    {
-      key: "7",
-      cantidad: 1500,
-      motivo_del_gasto: "Compra de Ropa",
-      medio_de_pago: "Tarjeta de Crédito",
-      cuotas_prestamo_por_vencer: undefined,
-      numero_de_cuotas: 6,
-      fecha_gastado_en: "04/04/2020",
-      tarjeta: "VISA 3243 4343 0988 1339",
-      cuenta_bancaria: undefined,
-      fecha_creado_en: "04/04/2020",
-    },
-    {
-      key: "8",
-      cantidad: 2500,
-      motivo_del_gasto: "Cuota de Préstamo",
-      medio_de_pago: "Débito de Automático",
-      cuotas_prestamo_por_vencer: "Prestamo 2 - Cuota #9",
-      numero_de_cuotas: 1,
-      fecha_gastado_en: "04/05/2020",
-      tarjeta: undefined,
-      cuenta_bancaria: "HSBC Bank #9085978549584",
-      fecha_creado_en: "04/05/2020",
-    },
-  ];
-
-  const [listData, setListData] = useState(data);
+  const [version, setVersion] = useState(props.version);
+  const [data, setData] = useState([]);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [itemToBeDelete, setItemToBeDelete] = useState({});
+
+  const fetchData = async () => {
+    const objs = await Egreso.todosActivos();
+    const objsWithKey = objs.map((e) => ({ ...e, key: e.id.toString() }));
+    setData(objsWithKey);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version, props.version]);
 
   const closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
@@ -141,13 +73,11 @@ const ListaEgresos = (props) => {
     }
   };
 
-  const deleteRow = ({ rowMap, rowKey }) => {
+  const deleteRow = async ({ rowMap, rowKey }) => {
     setConfirmDialogVisible(false);
     closeRow(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex((item) => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
+    await Egreso.remover(rowKey);
+    setVersion(timestamp());
   };
 
   const onRowDidOpen = (rowKey) => {
@@ -157,37 +87,51 @@ const ListaEgresos = (props) => {
   const renderItem = (data) => (
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
-        <View style={{ width: 140 }}>
-          <Text style={{ paddingBottom: 5 }}>
+        <View style={{ width: parseInt(width) * 0.4 }}>
+          <Text style={{ paddingBottom: 5, color: "#5073F3" }}>
             <Text>ARS </Text>
             <B>{data.item.cantidad}</B>
           </Text>
-          <Text style={{ paddingBottom: 5 }}>{data.item.fecha_gastado_en}</Text>
-          {data.item.numero_de_cuotas > 1 && (
+          <Text style={{ paddingBottom: 5 }}>
+            {formatDate(data.item.fecha_operacion)}
+          </Text>
+          {data.item.numero_cuotas > 1 && (
             <View>
               <Text>
                 <B>Cuotas: </B>
-                {data.item.numero_de_cuotas}
+                {data.item.numero_cuotas}
               </Text>
             </View>
           )}
         </View>
-        <View style={{ width: 220 }}>
-          <B>{data.item.motivo_del_gasto}</B>
-          <Text>{data.item.medio_de_pago}</Text>
-          {data.item.cuotas_prestamo_por_vencer && (
+        <View style={{ width: parseInt(width) * 0.5 }}>
+          <B>{EGRESOS_RUBROS_OPCIONES[data.item.motivo].desc}</B>
+          <Text>{EGRESOS_MEDIO_PAGO_OPCIONES[data.item.medio_pago]}</Text>
+          {data.item.prestamo_cuota_id && (
             <View>
-              <Text>{data.item.cuotas_prestamo_por_vencer}</Text>
+              <Text>
+                {_.capitalize(data.item.prestamo_descripcion)} #
+                {parseInt(data.item.prestamo_cuota_numero_cuota)}{" "}
+                {formatNumber(data.item.prestamo_cuota_cantidad)}
+              </Text>
             </View>
           )}
-          {data.item.tarjeta && (
+          {data.item.tarjeta_id && (
             <View>
-              <Text>{data.item.tarjeta}</Text>
+              <Text>
+                {TARJETAS_ENTIDAD_OPCIONES[
+                  data.item.tarjeta_entidad_emisor
+                ].toUpperCase()}{" "}
+                {data.item.tarjeta_ultimos_numeros}
+              </Text>
             </View>
           )}
-          {data.item.cuenta_bancaria && (
+          {data.item.cuenta_id && (
             <View>
-              <Text>{data.item.cuenta_bancaria}</Text>
+              <Text>
+                {BANCOS_OPCIONES[data.item.cuenta_banco_asociado].name} #
+                {data.item.cuenta_numero}
+              </Text>
             </View>
           )}
         </View>
@@ -199,7 +143,7 @@ const ListaEgresos = (props) => {
     <View style={styles.rowBack}>
       <View>
         <Text>Registrado el:</Text>
-        <Text>{data.item.fecha_creado_en}</Text>
+        <Text>{formatDate(data.item.fecha_creacion)}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
@@ -242,7 +186,7 @@ const ListaEgresos = (props) => {
     <View style={styles.container}>
       {confirmDelete()}
       <SwipeListView
-        data={listData}
+        data={data}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         leftOpenValue={75}

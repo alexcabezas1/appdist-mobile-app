@@ -15,6 +15,7 @@ const timestamp = () => Date.now();
 const formatDate = (value) => moment(value).format("DD/MM/YYYY");
 const formatDateMonthAndYear = (value) => moment(value).format("MM/YYYY");
 const formatDateTime = (value) => moment(value).format("HH:mm:ss DD/MM/YYYY");
+const formatNumber = (value) => parseFloat(value).toFixed(2);
 
 export {
   getYears,
@@ -22,4 +23,5 @@ export {
   formatDateMonthAndYear,
   formatDateTime,
   timestamp,
+  formatNumber,
 };
