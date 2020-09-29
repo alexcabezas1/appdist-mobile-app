@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableHighlight,
   View,
+  Dimensions,
 } from "react-native";
 import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -13,8 +14,24 @@ import RegistrarInversionScreen from "./InversionesRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
 import { listStyles } from "./shared/styles";
 import { B } from "./shared/common";
+import {
+  Inversion,
+  INVERSIONES_TIPO_INVERSION_OPCIONES,
+  BANCOS_OPCIONES,
+} from "../services/models";
+import {
+  formatDate,
+  formatDateMonthAndYear,
+  formatDateTime,
+  formatNumber,
+  fotmatNumber,
+  timestamp,
+} from "../services/common";
+import _ from "lodash";
 
-const InversionesScreen = ({ navigation, props }) => {
+const { width } = Dimensions.get("screen");
+
+const InversionesScreen = ({ route, navigation, props }) => {
   return (
     <Container>
       <Content>
@@ -25,7 +42,7 @@ const InversionesScreen = ({ navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nueva Inversion</Text>
         </Button>
-        <ListaInversiones />
+        <ListaInversiones {...route.params} />
       </Content>
     </Container>
   );
@@ -41,7 +58,7 @@ const ListaInversiones = (props) => {
 
   const inversiones_con_interes = ["plazo_fijo", "bono"];
 
-  const data = [
+  const data1 = [
     {
       key: "1",
       tipo_inversion: "Acción",
@@ -108,9 +125,32 @@ const ListaInversiones = (props) => {
     },
   ];
 
-  const [listData, setListData] = useState(data);
+  const [version, setVersion] = useState(props.version);
+  const [data, setData] = useState([]);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [itemToBeDelete, setItemToBeDelete] = useState({});
+
+  const fetchData = async () => {
+    const objs = await Inversion.todos();
+    const objsWithKey = objs.map((e) => ({ ...e, key: e.id.toString() }));
+    setData(objsWithKey);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version, props.version]);
+
+  const obtenerPrecioUnitario = ({ capital_invertido, cantidad_adquirida }) => {
+    const cambio_dolar = 80;
+    const precio = capital_invertido / cambio_dolar / cantidad_adquirida;
+    return formatNumber(precio);
+  };
+
+  const esInversionConInteres = ({ tipo_inversion }) =>
+    inversiones_con_interes.includes(tipo_inversion);
+
+  const esInversionConCantidadAdquirida = ({ tipo_inversion }) =>
+    inversiones_con_cantidad_adquirida.includes(tipo_inversion);
 
   const closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
@@ -118,13 +158,11 @@ const ListaInversiones = (props) => {
     }
   };
 
-  const deleteRow = ({ rowMap, rowKey }) => {
+  const deleteRow = async ({ rowMap, rowKey }) => {
     setConfirmDialogVisible(false);
     closeRow(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex((item) => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
+    await Inversion.remover(rowKey);
+    setVersion(timestamp());
   };
 
   const onRowDidOpen = (rowKey) => {
@@ -134,44 +172,57 @@ const ListaInversiones = (props) => {
   const renderItem = (data) => (
     <TouchableHighlight style={styles.rowFront} underlayColor={"#AAA"}>
       <View style={styles.item}>
-        <View style={{ width: 130 }}>
-          <Text>{data.item.fecha_transaccion}</Text>
-          <Text style={{ paddingBottom: 5 }}>
+        <View style={{ width: parseInt(width) * 0.35 }}>
+          <Text style={{ paddingBottom: 5, color: "#5073F3" }}>
             <Text>ARS </Text>
             <B>{data.item.capital_invertido}</B>
           </Text>
-          <B>{data.item.tipo_inversion}</B>
+          <B>{INVERSIONES_TIPO_INVERSION_OPCIONES[data.item.tipo_inversion]}</B>
           <Text>{data.item.descripcion}</Text>
           {inversiones_con_cantidad_adquirida.includes(
-            data.item.tipo_inversion_key
+            data.item.tipo_inversion
           ) && (
             <View>
-              <Text>{data.item.cantidad_adquirida} unidades</Text>
+              <Text>{data.item.cantidad_adquirida} unid.</Text>
               <B>Precio</B>
-              <Text>{data.item.precio_unitario} USD</Text>
+              <Text>{obtenerPrecioUnitario(data.item)} USD</Text>
             </View>
           )}
-          {inversiones_con_interes.includes(data.item.tipo_inversion_key) && (
+          {esInversionConInteres(data.item) && (
             <View>
-              <Text>{data.item.tasa_interes} %</Text>
-              <B>Vence</B>
-              <Text>{data.item.fecha_vencimiento}</Text>
+              <Text>{formatNumber(data.item.interes)} %</Text>
             </View>
           )}
         </View>
-        <View style={{ width: 230 }}>
-          {inversiones_con_cantidad_adquirida.includes(
-            data.item.tipo_inversion_key
-          ) && (
+        <View style={{ width: parseInt(width) * 0.55 }}>
+          <Text>
+            <B>Realizada en </B>
+            {formatDate(data.item.fecha_operacion)}
+          </Text>
+          {esInversionConInteres(data.item) && (
+            <View>
+              <Text>
+                <B>Vence en</B>
+                {formatDate(data.item.fecha_vencimiento)}
+              </Text>
+            </View>
+          )}
+          {esInversionConCantidadAdquirida(data.item) && (
             <View>
               <B>Intermediario</B>
               <Text>{data.item.intermediario}</Text>
             </View>
           )}
           <B>Acreditar en</B>
-          <Text>{data.item.acreditar_en}</Text>
+          <Text>
+            {BANCOS_OPCIONES[data.item.cuenta_origen_banco_asociado].name} #
+            {data.item.cuenta_origen_numero}
+          </Text>
           <B>Debitar de</B>
-          <Text>{data.item.debitar_de}</Text>
+          <Text>
+            {BANCOS_OPCIONES[data.item.cuenta_destino_banco_asociado].name} #
+            {data.item.cuenta_destino_numero}
+          </Text>
         </View>
       </View>
     </TouchableHighlight>
@@ -181,7 +232,7 @@ const ListaInversiones = (props) => {
     <View style={styles.rowBack}>
       <View>
         <Text>Registrado el:</Text>
-        <Text>{data.item.fecha_creado_en}</Text>
+        <Text>{formatDate(data.item.fecha_creacion)}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}
@@ -224,7 +275,7 @@ const ListaInversiones = (props) => {
     <View style={styles.container}>
       {confirmDelete()}
       <SwipeListView
-        data={listData}
+        data={data}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         leftOpenValue={75}
@@ -247,7 +298,7 @@ const styles = {
     borderBottomColor: "#4f73f2",
     borderBottomWidth: 1,
     justifyContent: "center",
-    height: 170,
+    height: 180,
     paddingLeft: 15,
     paddingRight: 15,
   },

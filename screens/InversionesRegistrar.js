@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet } from "react-native";
 import * as Yup from "yup";
 import { Formik, ErrorMessage } from "formik";
@@ -20,6 +20,15 @@ import {
   Left,
   Right,
 } from "native-base";
+import {
+  Inversion,
+  Cuenta,
+  BANCOS_OPCIONES,
+  INVERSIONES_TIPO_INVERSION_OPCIONES,
+} from "../services/models";
+import { timestamp, formatNumber, formatDate } from "../services/common";
+import moment from "moment";
+import _ from "lodash";
 
 export default function RegistrarInversion({ navigation, props }) {
   const inversiones_con_cantidad_adquirida = [
@@ -29,17 +38,20 @@ export default function RegistrarInversion({ navigation, props }) {
     "otro",
   ];
   const inversiones_con_interes = ["plazo_fijo", "bono"];
+  const inversiones_tipo_inversion_opciones = Object.entries(
+    INVERSIONES_TIPO_INVERSION_OPCIONES
+  );
   const initialValues = {
-    tipo_inversion: "accion",
-    capital_invertido: "0.0",
-    tasa_interes: "0.0",
-    cantidad_adquirida: "1",
-    fecha_vencimiento: undefined, // requerido para plazo fijo, bono
-    acreditar_en: "hsbc_bank_9085978549584",
-    debitar_de: "hsbc_bank_9085978549584",
-    fecha_transaccion: undefined,
+    tipo_inversion: inversiones_tipo_inversion_opciones[0][0],
     descripcion: "",
+    capital_invertido: "0.0",
+    interes: "0.0",
+    cantidad_adquirida: "1",
     intermediario: "", // requerido para accion, bono, titulo
+    cuenta_origen_id: 1,
+    cuenta_destino_id: 1,
+    fecha_operacion: undefined,
+    fecha_vencimiento: undefined, // requerido para plazo fijo, bono
   };
 
   const validationSchema = Yup.object({
@@ -57,7 +69,7 @@ export default function RegistrarInversion({ navigation, props }) {
         .required("es requerido"),
       otherwise: Yup.number().notRequired(),
     }),
-    tasa_interes: Yup.mixed().when("tipo_inversion", {
+    interes: Yup.mixed().when("tipo_inversion", {
       is: (v) => inversiones_con_interes.includes(v),
       then: Yup.number()
         .typeError("debe ser un número")
@@ -71,7 +83,7 @@ export default function RegistrarInversion({ navigation, props }) {
       then: Yup.date().required("*"),
       otherwise: Yup.date().notRequired(),
     }),
-    fecha_transaccion: Yup.date().required("*"),
+    fecha_operacion: Yup.date().required("*"),
     descripcion: Yup.string().required("*"),
     intermediario: Yup.string().when("tipo_inversion", {
       is: (v) => inversiones_con_cantidad_adquirida.includes(v),
@@ -79,6 +91,24 @@ export default function RegistrarInversion({ navigation, props }) {
       otherwise: Yup.string().notRequired(),
     }),
   });
+
+  const [version, setVersion] = useState(timestamp());
+  const [cuentas, setCuentas] = useState([]);
+
+  const fetchData = async () => {
+    const cuentas = await Cuenta.cuentasActivas();
+    setCuentas(cuentas);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [version]);
+
+  const submitHandler = useCallback(async (form, { resetForm }) => {
+    await Inversion.registrar(form);
+    resetForm();
+    navigation.navigate("Inversiones", { version: timestamp() });
+  }, []);
 
   return (
     <Container>
@@ -105,7 +135,7 @@ export default function RegistrarInversion({ navigation, props }) {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values) => console.log(values)}
+          onSubmit={submitHandler}
         >
           {({
             handleChange,
@@ -134,14 +164,9 @@ export default function RegistrarInversion({ navigation, props }) {
                   selectedValue={values.tipo_inversion}
                   onValueChange={(v) => setFieldValue("tipo_inversion", v)}
                 >
-                  <Picker.Item label="Plazo Fijo" value="plazo_fijo" />
-                  <Picker.Item
-                    label="Compra de Título"
-                    value="compra_de_titulo"
-                  />
-                  <Picker.Item label="Acción" value="accion" />
-                  <Picker.Item label="Bono" value="bono" />
-                  <Picker.Item label="Otro" value="otro" />
+                  {inversiones_tipo_inversion_opciones.map((e) => (
+                    <Picker.Item label={e[1]} value={e[0]} key={e[0]} />
+                  ))}
                 </Picker>
               </Item>
               <Item>
@@ -183,26 +208,26 @@ export default function RegistrarInversion({ navigation, props }) {
                 <Item>
                   <Label>Tasa de Interes</Label>
                   <Input
-                    name="tasa_interes"
+                    name="interes"
                     keyboardType="number-pad"
                     style={{ color: "#5073F3" }}
-                    onChangeText={handleChange("tasa_interes")}
-                    onBlur={handleBlur("tasa_interes")}
-                    value={values.tasa_interes}
+                    onChangeText={handleChange("interes")}
+                    onBlur={handleBlur("interes")}
+                    value={values.interes}
                   />
                 </Item>
               )}
-              <Item>
+              <Item style={styles.noBorder}>
                 <ErrorMessage
                   component={Label}
-                  name="tasa_interes"
+                  name="interes"
                   style={styles.errorInput}
                 />
               </Item>
               {inversiones_con_cantidad_adquirida.includes(
                 values.tipo_inversion
               ) && (
-                <Item>
+                <Item style={styles.noBorder}>
                   <Label>Cantidad Adquirida</Label>
                   <Input
                     name="cantidad_adquirida"
@@ -241,8 +266,13 @@ export default function RegistrarInversion({ navigation, props }) {
                     androidMode={"default"}
                     placeHolderText="Elegir fecha"
                     textStyle={{ color: "#5073F3" }}
-                    placeHolderTextStyle={{ color: "#d3d3d3" }}
-                    onDateChange={(v) => setFieldValue("fecha_vencimiento", v)}
+                    placeHolderTextStyle={{ color: "#5073F3" }}
+                    onDateChange={(v) =>
+                      setFieldValue(
+                        "fecha_vencimiento",
+                        moment(v).format("YYYY-MM-DD")
+                      )
+                    }
                     disabled={false}
                   />
                 </Item>
@@ -251,7 +281,7 @@ export default function RegistrarInversion({ navigation, props }) {
                 <Label>Debitar de</Label>
                 <ErrorMessage
                   component={Label}
-                  name="debitar_de"
+                  name="cuenta_origen_id"
                   style={styles.errorInput}
                 />
                 <Picker
@@ -261,72 +291,58 @@ export default function RegistrarInversion({ navigation, props }) {
                   placeholder="Los fondos provienen de"
                   placeholderStyle={{ color: "#bfc6ea" }}
                   placeholderIconColor="#007aff"
-                  selectedValue={values.debitar_de}
-                  onValueChange={(v) => setFieldValue("debitar_de", v)}
+                  selectedValue={values.cuenta_origen_id}
+                  onValueChange={(v) => setFieldValue("cuenta_origen_id", v)}
                 >
-                  <Picker.Item
-                    label="HSBC Bank #9085978549584"
-                    value="hsbc_bank_9085978549584"
-                  />
-                  <Picker.Item
-                    label="Banco Frances #584954859484"
-                    value="banco_frances_584954859484"
-                  />
-                  <Picker.Item
-                    label="Banco Ciudad #920398498343"
-                    value="banco_ciudad_920398498343"
-                  />
-                  <Picker.Item
-                    label="Mercadopago #548594689898"
-                    value="mercadopago_548594689898"
-                  />
+                  {cuentas.map((e) => (
+                    <Picker.Item
+                      label={
+                        BANCOS_OPCIONES[e.banco_asociado].name + " #" + e.numero
+                      }
+                      value={e.id}
+                      key={"cuenta-origen-id" + e.id}
+                    />
+                  ))}
                 </Picker>
               </Item>
               <Item>
                 <Label>Acreditar en</Label>
                 <ErrorMessage
                   component={Label}
-                  name="acreditar_en"
+                  name="cuenta_destino_id"
                   style={styles.errorInput}
                 />
                 <Picker
                   mode="dropdown"
                   iosIcon={<Icon name="arrow-down" />}
                   style={{ width: undefined, color: "#5073F3" }}
-                  placeholder="Los fondos provienen de"
+                  placeholder="Depositar los fondos en"
                   placeholderStyle={{ color: "#bfc6ea" }}
                   placeholderIconColor="#007aff"
-                  selectedValue={values.acreditar_en}
-                  onValueChange={(v) => setFieldValue("acreditar_en", v)}
+                  selectedValue={values.cuenta_destino_id}
+                  onValueChange={(v) => setFieldValue("cuenta_destino_id", v)}
                 >
-                  <Picker.Item
-                    label="HSBC Bank #9085978549584"
-                    value="hsbc_bank_9085978549584"
-                  />
-                  <Picker.Item
-                    label="Banco Frances #584954859484"
-                    value="banco_frances_584954859484"
-                  />
-                  <Picker.Item
-                    label="Banco Ciudad #920398498343"
-                    value="banco_ciudad_920398498343"
-                  />
-                  <Picker.Item
-                    label="Mercadopago #548594689898"
-                    value="mercadopago_548594689898"
-                  />
+                  {cuentas.map((e) => (
+                    <Picker.Item
+                      label={
+                        BANCOS_OPCIONES[e.banco_asociado].name + " #" + e.numero
+                      }
+                      value={e.id}
+                      key={"cuenta-destino-" + e.id}
+                    />
+                  ))}
                 </Picker>
               </Item>
               <Item>
                 <Label>Operación realizada el</Label>
                 <ErrorMessage
                   component={Label}
-                  name="fecha_transaccion"
+                  name="fecha_operacion"
                   style={styles.errorInput}
                 />
                 <DatePicker
-                  name="fecha_transaccion"
-                  defaultDate={values.fecha_transaccion}
+                  name="fecha_operacion"
+                  defaultDate={values.fecha_operacion}
                   minimumDate={new Date(2000, 1, 1)}
                   maximumDate={new Date(2100, 12, 31)}
                   locale={"es"}
@@ -336,8 +352,13 @@ export default function RegistrarInversion({ navigation, props }) {
                   androidMode={"default"}
                   placeHolderText="Elegir fecha"
                   textStyle={{ color: "#5073F3" }}
-                  placeHolderTextStyle={{ color: "#d3d3d3" }}
-                  onDateChange={(v) => setFieldValue("fecha_transaccion", v)}
+                  placeHolderTextStyle={{ color: "#5073F3" }}
+                  onDateChange={(v) =>
+                    setFieldValue(
+                      "fecha_operacion",
+                      moment(v).format("YYYY-MM-DD")
+                    )
+                  }
                   disabled={false}
                 />
               </Item>

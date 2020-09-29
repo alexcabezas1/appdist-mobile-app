@@ -571,13 +571,76 @@ class Inversion extends BaseModel {
       cuenta_origen_id: { type: types.INTEGER, not_null: true },
       cuenta_destino_id: { type: types.INTEGER, not_null: true },
       fecha_operacion: { type: types.DATE, not_null: true },
-      fecha_vencimiento: { type: types.DATE, not_null: true },
+      fecha_vencimiento: { type: types.DATE },
       fecha_creacion: {
         type: types.DATETIME,
         not_null: true,
         default: () => currentDateTime(),
       },
     };
+  }
+
+  static async registrar(values) {
+    const inversionNew = new Inversion(values);
+    const inversion = await inversionNew.save();
+
+    const { id: inversion_id } = inversion;
+    const {
+      cuenta_origen_id: cuenta_id,
+      capital_invertido: cantidad,
+      fecha_operacion,
+    } = values;
+    const concepto = CUENTAS_MOVIMIENTOS_CONCEPTO_OPCIONES.INVERSION;
+    const tipo = CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.DEBITA;
+    const newMovimiento = new CuentaMovimiento({
+      cuenta_id,
+      concepto,
+      tipo,
+      cantidad,
+      inversion_id,
+      fecha_operacion,
+    });
+    await newMovimiento.save();
+  }
+
+  static async remover(id) {
+    const inversion = await Inversion.find(id);
+    const { cuenta_origen_id: cuenta_id } = inversion;
+    const delete_movimientos_sql = `
+    DELETE FROM cuentas_movimientos
+    WHERE cuenta_id = ${cuenta_id} AND inversion_id = ${id}
+    `;
+    await this.repository.databaseLayer.executeSql(delete_movimientos_sql);
+    await Inversion.destroy(id);
+  }
+
+  static todos() {
+    const sql = `
+      SELECT
+        i.id,
+        i.tipo_inversion,
+        i.descripcion,
+        i.capital_invertido,
+        i.interes,
+        i.cantidad_adquirida,
+        i.intermediario,
+        i.cuenta_origen_id,
+        i.cuenta_destino_id,
+        i.fecha_operacion,
+        i.fecha_vencimiento,
+        c1.banco_asociado AS cuenta_origen_banco_asociado,
+        c1.numero AS cuenta_origen_numero,
+        c2.banco_asociado AS cuenta_destino_banco_asociado,
+        c2.numero AS cuenta_destino_numero
+      FROM inversiones i
+      LEFT JOIN cuentas c1 ON i.cuenta_origen_id = c1.id
+      LEFT JOIN cuentas c2 ON i.cuenta_destino_id = c2.id
+      ORDER BY i.fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
   }
 }
 
@@ -912,16 +975,16 @@ const INGRESOS_ORIGEN_OPCIONES = {
 };
 
 const CUENTAS_MOVIMIENTOS_TIPO_OPCIONES = {
-  ACREDITA: "acredita",
-  DEBITA: "debita",
+  ACREDITA: "ACREDITA",
+  DEBITA: "DEBITA",
 };
 
 const CUENTAS_MOVIMIENTOS_CONCEPTO_OPCIONES = {
-  INGRESO: "ingreso",
-  EGRESO: "egreso",
-  TARJETA: "tarjeta",
-  PRESTAMO_CUOTA: "prestamo_cuota",
-  INVERSION: "inversion",
+  INGRESO: "INGRESO",
+  EGRESO: "EGRESO",
+  TARJETA: "TARJETA",
+  PRESTAMO_CUOTA: "PRESTAMO_CUOTA",
+  INVERSION: "INVERSION",
 };
 
 const PRESTAMOS_PLAZO_OPCIONES = {
@@ -992,6 +1055,14 @@ const EGRESOS_MEDIO_PAGO_OPCIONES = {
   mercadopago: "MercadoPago",
 };
 
+const INVERSIONES_TIPO_INVERSION_OPCIONES = {
+  plazo_fijo: "Plazo Fijo",
+  compra_de_titulo: "Compra de Título",
+  accion: "Acción",
+  bono: "Bono",
+  otro: "Otro",
+};
+
 export {
   Ingreso,
   Cuenta,
@@ -1018,4 +1089,5 @@ export {
   PRESTAMOS_ROL_OPCIONES,
   EGRESOS_RUBROS_OPCIONES,
   EGRESOS_MEDIO_PAGO_OPCIONES,
+  INVERSIONES_TIPO_INVERSION_OPCIONES,
 };
