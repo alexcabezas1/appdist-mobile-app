@@ -865,6 +865,62 @@ class Presupuesto extends BaseModel {
       },
     };
   }
+
+  static async registrar(items) {
+    console.log(items);
+    const presupuestoNew = new Presupuesto({});
+    const presupuesto = await presupuestoNew.save();
+    console.log(presupuesto);
+    const { id: presupuesto_id } = presupuesto;
+    items.forEach(async ({ rubro, cantidad_estimada }) => {
+      const detalleNew = new PresupuestoDetalle({
+        presupuesto_id,
+        rubro,
+        cantidad_estimada,
+      });
+      const detalle = await detalleNew.save();
+      console.log(detalle);
+    });
+  }
+
+  static async gestionar(items) {
+    const mesActual = moment().format("MM");
+    const delete_presupuesto_sql = `
+    DELETE FROM presupuestos_detalle
+    WHERE presupuesto_id IN (
+      SELECT id FROM presupuestos
+      WHERE strftime('%m', fecha_creacion) = '${mesActual}'
+    )`;
+    const rows = await this.repository.databaseLayer.executeSql(
+      delete_presupuesto_sql
+    );
+
+    const detele_detalle_sql = `
+    DELETE FROM presupuestos
+    WHERE strftime('%m', fecha_creacion) = '${mesActual}'
+    `;
+    await this.repository.databaseLayer.executeSql(detele_detalle_sql);
+
+    await this.registrar(items);
+  }
+
+  static async masReciente() {
+    const sql = `
+    SELECT
+      pd.id,
+      pd.presupuesto_id,
+      pd.rubro,
+      pd.cantidad_estimada
+    FROM presupuestos_detalle pd
+    WHERE pd.presupuesto_id IN (
+      SELECT id FROM presupuestos
+      ORDER BY fecha_creacion DESC
+      LIMIT 1
+    )`;
+    return this.repository.databaseLayer
+      .executeSql(sql, [])
+      .then(({ rows }) => rows);
+  }
 }
 
 class PresupuestoDetalle extends BaseModel {

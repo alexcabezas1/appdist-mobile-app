@@ -23,6 +23,7 @@ import PrestamosScreen, {
 } from "../screens/Prestamos";
 import PresupuestoScreen from "../screens/Presupuesto";
 import DashboardScreen from "../screens/Dashboard";
+import { timestamp } from "../services/common";
 
 import CustomDrawerContent from "./Menu";
 import { Icon, Header } from "../components";
@@ -250,6 +251,7 @@ function PresupuestosStack(props) {
       <Stack.Screen
         name="Presupuesto"
         component={PresupuestoScreen}
+        initialParams={{ version: timestamp() }}
         options={{
           header: ({ navigation, scene }) => (
             <Header
