@@ -206,6 +206,22 @@ class Cuenta extends BaseModel {
 
     return true;
   }
+
+  static saldoPorCuenta() {
+    const sql = `
+      SELECT
+        id,
+        numero,
+        banco_asociado,
+        saldo
+      FROM cuentas WHERE borrado = false
+      ORDER BY saldo DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
 }
 
 class CuentaMovimiento extends BaseModel {
@@ -487,6 +503,23 @@ class Egreso extends BaseModel {
       LEFT JOIN prestamos p ON pc.prestamo_id = p.id
       WHERE e.borrado = false
       ORDER BY e.fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
+
+  static sumaMesActualYMedioPago() {
+    const mesActual = moment().format("MM");
+    const sql = `
+      SELECT
+        e.medio_pago,
+        SUM(e.cantidad) AS cantidad
+      FROM egresos e
+      WHERE strftime('%m', e.fecha_creacion) = '${mesActual}'
+      GROUP BY medio_pago
+      ORDER BY cantidad
     `;
     const params = [];
     return this.repository.databaseLayer

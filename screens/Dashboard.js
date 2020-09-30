@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Dimensions } from "react-native";
 import { Container, Header, Content, Footer, Button } from "native-base";
 import {
@@ -9,16 +9,37 @@ import {
   VictoryLabel,
   VictoryGroup,
   VictoryStack,
-  VictoryLegend,
+  VictoryContainer,
 } from "victory-native";
 import { listStyles } from "./shared/styles";
 import { B } from "./shared/common";
+import {
+  Egreso,
+  Cuenta,
+  EGRESOS_MEDIO_PAGO_OPCIONES,
+  BANCOS_OPCIONES,
+} from "../services/models";
+import {
+  formatDate,
+  formatDateMonthAndYear,
+  formatDateTime,
+  formatNumber,
+  timestamp,
+} from "../services/common";
 
-const DashboardScreen = ({ navigation, props }) => {
+const DashboardScreen = ({ route, navigation, props }) => {
+  const [version, setVersion] = useState();
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      setVersion(timestamp());
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <Container>
       <Content>
-        <Dashboard />
+        <Dashboard {...route.params} version={version} />
       </Content>
     </Container>
   );
@@ -32,7 +53,8 @@ const GastosPorMedioDePagoChart = (props) => (
     <VictoryChart
       width={width2}
       theme={VictoryTheme.material}
-      domainPadding={{ x: 50 }}
+      domainPadding={{ x: 60 }}
+      padding={{ top: 60, bottom: 50, left: 110, right: 0 }}
     >
       <VictoryAxis
         style={{
@@ -57,7 +79,8 @@ const SaldoPorCuentaBancariaChart = (props) => (
     <VictoryChart
       width={width2}
       theme={VictoryTheme.material}
-      domainPadding={{ x: 50 }}
+      domainPadding={{ x: 60 }}
+      padding={{ top: 60, bottom: 50, left: 110, right: 0 }}
     >
       <VictoryAxis
         style={{
@@ -196,6 +219,36 @@ const PresupuestoRealVSDesvioChart2 = (props) => {
 };
 
 const Dashboard = (props) => {
+  const [gastosDelMesData, setGastosDelMesData] = useState([]);
+  const [cuentasData, setCuentasData] = useState([]);
+
+  const fetchData = async () => {
+    const gastos = await Egreso.sumaMesActualYMedioPago();
+    const gastosData = gastos.map(({ medio_pago, cantidad }, i) => ({
+      x: medio_pago,
+      y: formatNumber(cantidad),
+      label: EGRESOS_MEDIO_PAGO_OPCIONES[medio_pago].split(" "),
+      i,
+    }));
+
+    const cuentas = await Cuenta.saldoPorCuenta();
+    const cuentasData = cuentas.map(
+      ({ id, saldo, numero, banco_asociado }, i) => ({
+        x: id,
+        y: saldo,
+        label: [BANCOS_OPCIONES[banco_asociado].name, numero],
+        i,
+      })
+    );
+
+    setGastosDelMesData(gastosData);
+    setCuentasData(cuentasData);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [props.version]);
+
   const gastos_del_mes = [
     { x: "de_contado", y: 30100, label: ["de", "contado"], i: 1 },
     {
@@ -233,11 +286,11 @@ const Dashboard = (props) => {
     <React.Fragment>
       <View style={styles.container}>
         <B>Gastos del Mes según al Medio de Pago</B>
-        <GastosPorMedioDePagoChart data={gastos_del_mes} />
+        <GastosPorMedioDePagoChart data={gastosDelMesData} />
       </View>
       <View style={styles.container}>
         <B>Saldo en Cuentas Bancarias</B>
-        <SaldoPorCuentaBancariaChart data={saldo_por_cuenta_bancaria} />
+        <SaldoPorCuentaBancariaChart data={cuentasData} />
       </View>
       <View style={styles.container}>
         <B>Presupuesto y Gasto Real</B>
