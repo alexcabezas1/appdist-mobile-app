@@ -27,7 +27,6 @@ import {
   formatDateMonthAndYear,
   formatDateTime,
   formatNumber,
-  fotmatNumber,
   timestamp,
 } from "../services/common";
 import _ from "lodash";
@@ -111,8 +110,8 @@ const ListaEgresos = (props) => {
             <View>
               <Text>
                 {_.capitalize(data.item.prestamo_descripcion)} #
-                {parseInt(data.item.prestamo_cuota_numero_cuota)}{" "}
-                {formatNumber(data.item.prestamo_cuota_cantidad)}
+                {parseInt(data.item.prestamo_cuota_numero_cuota)} (
+                {formatNumber(data.item.prestamo_cuota_cantidad)})
               </Text>
             </View>
           )}

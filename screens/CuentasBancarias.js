@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TouchableHighlight,
   View,
+  Dimensions,
 } from "react-native";
 import { Container, Header, Content, Footer, Button } from "native-base";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -13,7 +14,16 @@ import CuentasRegistrar from "./CuentasRegistrar";
 import { ConfirmDialog } from "react-native-simple-dialogs";
 import { B } from "./shared/common";
 import { listStyles } from "./shared/styles";
-import { Cuenta, BANCOS_OPCIONES, timestamp } from "../services/models";
+import { Cuenta, BANCOS_OPCIONES } from "../services/models";
+import {
+  formatDate,
+  formatDateMonthAndYear,
+  formatDateTime,
+  formatNumber,
+  timestamp,
+} from "../services/common";
+
+const { width } = Dimensions.get("screen");
 
 const CuentasScreen = ({ route, navigation, props }) => {
   return (
@@ -72,7 +82,7 @@ const ListaCuentas = (props) => {
       key={data.item.id}
     >
       <View style={styles.item}>
-        <View style={{ width: 160 }}>
+        <View style={{ width: parseInt(width) * 0.35 }}>
           <Text style={{ paddingBottom: 0 }}>
             <B>{BANCOS_OPCIONES[data.item.banco_asociado].name}</B>
           </Text>
@@ -81,9 +91,13 @@ const ListaCuentas = (props) => {
             {data.item.numero}
           </Text>
         </View>
-        <View style={{ width: 150 }}>
+        <View style={{ width: parseInt(width) * 0.25 }}>
           <B>{BANCOS_OPCIONES[data.item.banco_asociado].tipo.toUpperCase()}</B>
           <Text>{data.item.cbu}</Text>
+        </View>
+        <View style={{ width: parseInt(width) * 0.3 }}>
+          <B>Saldo</B>
+          <Text>{formatNumber(data.item.saldo)}</Text>
         </View>
       </View>
     </TouchableHighlight>
@@ -93,7 +107,7 @@ const ListaCuentas = (props) => {
     <View style={styles.rowBack}>
       <View>
         <Text>Registrado el:</Text>
-        <Text>{data.item.fecha_creacion}</Text>
+        <Text>{formatDate(data.item.fecha_creacion)}</Text>
       </View>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnLeft]}

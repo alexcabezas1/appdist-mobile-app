@@ -80,11 +80,26 @@ class Ingreso extends BaseModel {
         await newMovimiento.save();
       }
     }
+
+    await Cuenta.actualizarSaldo(
+      cuenta_destino_id,
+      cantidad,
+      CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.ACREDITA
+    );
   }
 
   static async remover(id) {
     const sql = `DELETE FROM cuentas_movimientos WHERE ingreso_id = ?`;
     await this.repository.databaseLayer.executeSql(sql, [id]);
+
+    const { cantidad, cuenta_destino_id } = await Ingreso.find(id);
+
+    await Cuenta.actualizarSaldo(
+      cuenta_destino_id,
+      cantidad,
+      CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.DEBITA
+    );
+
     await Ingreso.destroy(id);
   }
 
@@ -150,6 +165,7 @@ class Cuenta extends BaseModel {
         numero,
         banco_asociado,
         cbu,
+        saldo,
         fecha_creacion
       FROM cuentas WHERE borrado = false
       ORDER BY fecha_creacion DESC
@@ -159,16 +175,38 @@ class Cuenta extends BaseModel {
       .executeSql(sql, params)
       .then(({ rows }) => rows);
   }
-}
 
-/*
-      const cuentas = await Cuenta.query({
-        columns: "id, numero, banco_asociado, cbu, fecha_creacion",
-        where: {
-          borrado_eq: false,
-        },
-      });
-*/
+  static async haySaldoSuficiente(id, cantidad) {
+    const cuenta = await Cuenta.find(id);
+    if (cuenta.saldo < cantidad) {
+      console.log("saldo insuficiente en cuenta");
+      return false;
+    }
+    return true;
+  }
+
+  static async actualizarSaldo(id, cantidad, tipoMovimiento) {
+    if (tipoMovimiento == CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.DEBITA) {
+      await Cuenta.haySaldoSuficiente(id, cantidad);
+    }
+
+    let operacion = "";
+    if (tipoMovimiento == CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.ACREDITA)
+      operacion = "+";
+    if (tipoMovimiento == CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.DEBITA)
+      operacion = "-";
+
+    const sql = `
+    UPDATE cuentas
+    SET saldo = saldo ${operacion} ${parseFloat(cantidad)}
+    WHERE id = ${id}
+    `;
+    await this.repository.databaseLayer.executeSql(sql);
+    console.log(await Cuenta.find(id));
+
+    return true;
+  }
+}
 
 class CuentaMovimiento extends BaseModel {
   constructor(obj) {
@@ -256,6 +294,7 @@ class Egreso extends BaseModel {
     const newEgreso = new Egreso(values);
     const egreso = await newEgreso.save();
     const { id: egreso_id } = egreso;
+    const tipo = CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.DEBITA;
 
     const esConMovimientoEnCuenta =
       (medio_pago === "debito_automatico" ||
@@ -268,10 +307,11 @@ class Egreso extends BaseModel {
       medio_pago === "tarjeta_de_credito" && motivo != "cuota_de_prestamo";
 
     if (motivo == "cuota_de_prestamo") {
-      const { prestamo_id } = await PrestamoCuota.find(prestamo_cuota_id);
+      const prestamoCuota = await PrestamoCuota.find(prestamo_cuota_id);
+      const { prestamo_id, cantidad } = prestamoCuota;
       const prestamo = await Prestamo.find(prestamo_id);
       if (prestamo.debito_automatico) {
-        console.log("actualizar movimiento cuota prestamp existente");
+        console.log("actualizar movimiento cuota prestamo existente");
         const update_movimiento_sql = `
         UPDATE cuentas_movimientos
         SET egreso_id = ${egreso_id}
@@ -280,6 +320,7 @@ class Egreso extends BaseModel {
           update_movimiento_sql,
           []
         );
+        await Cuenta.actualizarSaldo(cuenta_id, cantidad, tipo);
       } else {
         console.log("registrar nuevo movimiento por cuota prestamo");
         //solo con tarjeta de débito
@@ -290,12 +331,14 @@ class Egreso extends BaseModel {
         const cuentaMovimiento = new CuentaMovimiento({
           cuenta_id,
           concepto: CUENTAS_MOVIMIENTOS_CONCEPTO_OPCIONES.PRESTAMO_CUOTA,
-          tipo: CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.DEBITA,
+          tipo,
           cantidad: cuota_cantidad,
           egreso_id,
           fecha_operacion,
         });
         await cuentaMovimiento.save();
+
+        await Cuenta.actualizarSaldo(cuenta_id, cuota_cantidad, tipo);
       }
 
       const update_cuota_sql = `
@@ -315,7 +358,6 @@ class Egreso extends BaseModel {
       }
 
       const concepto = CUENTAS_MOVIMIENTOS_CONCEPTO_OPCIONES.EGRESO;
-      const tipo = CUENTAS_MOVIMIENTOS_TIPO_OPCIONES.DEBITA;
       let currentFechaOperacion = moment(fecha_operacion, "YYYY-MM-DD");
       for (let i = 0; i < numero_cuotas; i++) {
         const newCuentaMovimeinto = new CuentaMovimiento({
@@ -342,6 +384,7 @@ class Egreso extends BaseModel {
         });
         await newCuentaMovimeinto.save();
       }
+      await Cuenta.actualizarSaldo(cuenta_id, cantidad, tipo);
     }
 
     if (esConMovimientoEnTarjeta) {
