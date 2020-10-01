@@ -23,7 +23,10 @@ import PrestamosScreen, {
 } from "../screens/Prestamos";
 import PresupuestoScreen from "../screens/Presupuesto";
 import DashboardScreen from "../screens/Dashboard";
-import { timestamp } from "../services/common";
+
+
+import ExportDataScreen from "../screens/ExportData";
+
 
 import CustomDrawerContent from "./Menu";
 import { Icon, Header } from "../components";
@@ -251,7 +254,6 @@ function PresupuestosStack(props) {
       <Stack.Screen
         name="Presupuesto"
         component={PresupuestoScreen}
-        initialParams={{ version: timestamp() }}
         options={{
           header: ({ navigation, scene }) => (
             <Header
@@ -288,6 +290,33 @@ function ProfileStack(props) {
     </Stack.Navigator>
   );
 }
+
+
+function ExportDataStack(props) {
+  return (
+    <Stack.Navigator
+      initialRouteName="Export"
+      mode="card"
+      headerMode="screen"
+    >
+      <Stack.Screen
+        name="Export"
+        component={ExportDataScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title="Exportar a Excel"
+              scene={scene}
+              navigation={navigation}
+            />
+          ),
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+
 
 function HomeStack(props) {
   return (
@@ -467,7 +496,7 @@ function AppStack(props) {
         }}
       />
       <Drawer.Screen
-        name="Profile"
+        name="Perfil"
         component={ProfileStack}
         options={{
           drawerIcon: ({ focused }) => (
@@ -480,6 +509,23 @@ function AppStack(props) {
           ),
         }}
       />
+
+
+      <Drawer.Screen
+              name="Exportar a Excel"
+              component={ExportDataStack}
+              options={{
+                drawerIcon: ({ focused }) => (
+                  <Icon
+                    size={16}
+                    name="circle-10"
+                    family="GalioExtra"
+                    color={focused ? "white" : materialTheme.COLORS.MUTED}
+                  />
+                ),
+              }}
+            />
+
       <Drawer.Screen
         name="Iniciar Sesión"
         component={ProScreen}

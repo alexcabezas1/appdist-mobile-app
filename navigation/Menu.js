@@ -30,6 +30,7 @@ function CustomDrawerContent({
     "Prestamos",
     "Presupuesto",
     "Perfil",
+    "Exportar a Excel",
   ];
   return (
     <Block

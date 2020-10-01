@@ -53,6 +53,7 @@ TaskManager.defineTask(TASK_NAME, () => {
 
     //TODO: identificar vencimientos y registrarlos en otra tabla
     //TODO: registrar movimientos en cuenta para ingresos recurrentes y debitos automaticos
+    //TODO: actualizar saldos de las cuentas bancarias
     return receivedNewData
       ? BackgroundFetch.Result.NewData
       : BackgroundFetch.Result.NoData;

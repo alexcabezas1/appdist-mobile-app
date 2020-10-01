@@ -125,6 +125,25 @@ class Ingreso extends BaseModel {
       .executeSql(sql, params)
       .then(({ rows }) => rows);
   }
+
+  static exportar() {
+    const sql = `
+    SELECT
+      id,
+      cantidad,
+      origen,
+      cuenta_destino_id,
+      frecuencia,
+      recurrencia,
+      fecha_operacion,
+      fecha_creacion
+    FROM ingresos
+  `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
 }
 
 class Cuenta extends BaseModel {
@@ -167,8 +186,28 @@ class Cuenta extends BaseModel {
         cbu,
         saldo,
         fecha_creacion
-      FROM cuentas WHERE borrado = false
+      FROM cuentas WHERE borrado = 0
       ORDER BY fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
+
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        descripcion,
+        numero,
+        banco_asociado,
+        cbu,
+        saldo,
+        fecha_creacion,
+        fecha_borrado,
+        borrado
+      FROM cuentas
     `;
     const params = [];
     return this.repository.databaseLayer
@@ -214,7 +253,7 @@ class Cuenta extends BaseModel {
         numero,
         banco_asociado,
         saldo
-      FROM cuentas WHERE borrado = false
+      FROM cuentas WHERE borrado = 0
       ORDER BY saldo DESC
     `;
     const params = [];
@@ -256,6 +295,28 @@ class CuentaMovimiento extends BaseModel {
         default: () => currentDateTime(),
       },
     };
+  }
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        cuenta_id,
+        concepto,
+        tipo,
+        cantidad,
+        ingreso_id,
+        egreso_id,
+        tarjeta_id,
+        prestamo_cuota_id,
+        inversion_id,
+        fecha_operacion,
+        fecha_creacion
+      FROM cuentas_movimientos
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
   }
 }
 
@@ -453,7 +514,7 @@ class Egreso extends BaseModel {
 
       const update_cuota_sql = `
       UPDATE prestamos_cuotas
-      SET pagado = false, fecha_pagado = null
+      SET pagado = 0, fecha_pagado = null
       WHERE id = ${prestamo_cuota_id}`;
       await this.repository.databaseLayer.executeSql(update_cuota_sql);
     }
@@ -487,6 +548,7 @@ class Egreso extends BaseModel {
         e.cuenta_id,
         e.prestamo_cuota_id,
         e.fecha_operacion,
+        e.fecha_creacion,
         c.numero AS cuenta_numero,
         c.banco_asociado AS cuenta_banco_asociado,
         t.tipo AS tarjeta_tipo,
@@ -501,8 +563,31 @@ class Egreso extends BaseModel {
       LEFT JOIN tarjetas t ON e.tarjeta_id = t.id
       LEFT JOIN prestamos_cuotas pc ON e.prestamo_cuota_id = pc.id
       LEFT JOIN prestamos p ON pc.prestamo_id = p.id
-      WHERE e.borrado = false
+      WHERE e.borrado = 0
       ORDER BY e.fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
+
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        cantidad,
+        motivo,
+        medio_pago,
+        numero_cuotas,
+        tarjeta_id,
+        cuenta_id,
+        prestamo_cuota_id,
+        fecha_operacion,
+        fecha_creacion,
+        fecha_borrado,
+        borrado
+      FROM egresos
     `;
     const params = [];
     return this.repository.databaseLayer
@@ -523,13 +608,14 @@ class Egreso extends BaseModel {
 
   static async sumaMesActualYMedioPago() {
     const mesMasReciente = await Egreso.mesMasReciente();
+    console.log("Mes:", mesMasReciente);
     //const mesActual = moment().format("MM");
     const sql = `
       SELECT
         e.medio_pago,
         SUM(e.cantidad) AS cantidad
       FROM egresos e
-      WHERE strftime('%m', e.fecha_creacion) = '${mesMasReciente}'
+      WHERE strftime('%m', e.fecha_operacion) = '${mesMasReciente}'
       GROUP BY medio_pago
       ORDER BY cantidad
     `;
@@ -595,8 +681,31 @@ class Tarjeta extends BaseModel {
         c.numero AS cuenta_numero
       FROM tarjetas t
       LEFT JOIN cuentas c ON t.cuenta_id = c.id
-      WHERE t.borrado = false
+      WHERE t.borrado = 0
       ORDER BY t.fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
+
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        tipo,
+        entidad_emisor,
+        cuenta_id,
+        ultimos_numeros,
+        fecha_vencimiento,
+        fecha_cierre_resumen,
+        fecha_vencimiento_resumen,
+        debito_automatico,
+        fecha_creacion,
+        fecha_borrado,
+        borrado
+      FROM tarjetas
     `;
     const params = [];
     return this.repository.databaseLayer
@@ -631,6 +740,23 @@ class TarjetaMovimiento extends BaseModel {
         default: () => currentDateTime(),
       },
     };
+  }
+
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        tarjeta_id,
+        cantidad,
+        fecha_operacion,
+        fecha_creacion,
+        egreso_id
+      FROM tarjetas_movimientos
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
   }
 }
 
@@ -724,6 +850,29 @@ class Inversion extends BaseModel {
       LEFT JOIN cuentas c1 ON i.cuenta_origen_id = c1.id
       LEFT JOIN cuentas c2 ON i.cuenta_destino_id = c2.id
       ORDER BY i.fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
+
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        tipo_inversion,
+        descripcion,
+        capital_invertido,
+        interes,
+        cantidad_adquirida,
+        intermediario,
+        cuenta_origen_id,
+        cuenta_destino_id,
+        fecha_operacion,
+        fecha_vencimiento,
+        fecha_creacion
+      FROM inversiones
     `;
     const params = [];
     return this.repository.databaseLayer
@@ -862,8 +1011,32 @@ class Prestamo extends BaseModel {
         c.numero AS cuenta_numero
       FROM prestamos p
       LEFT JOIN cuentas c ON p.cuenta_id = c.id
-      WHERE p.borrado = false
+      WHERE p.borrado = 0
       ORDER BY p.fecha_creacion DESC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
+
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        capital_principal,
+        interes,
+        plazo,
+        dia_vencimiento_cuota,
+        debito_automatico,
+        cuenta_id,
+        rol,
+        descripcion,
+        fecha_operacion,
+        fecha_creacion,
+        fecha_borrado,
+        borrado
+      FROM prestamos
     `;
     const params = [];
     return this.repository.databaseLayer
@@ -918,10 +1091,31 @@ class PrestamoCuota extends BaseModel {
       FROM prestamos_cuotas pc
       LEFT JOIN prestamos p ON pc.prestamo_id = p.id
       WHERE
-        pc.borrado = false
-        AND pc.pagado = false
+        pc.borrado = 0
+        AND pc.pagado = 0
         AND p.rol = "prestatario"
       ORDER BY pc.fecha_creacion ASC
+    `;
+    const params = [];
+    return this.repository.databaseLayer
+      .executeSql(sql, params)
+      .then(({ rows }) => rows);
+  }
+
+  static exportar() {
+    const sql = `
+      SELECT
+        id,
+        prestamo_id,
+        numero_cuota,
+        cantidad,
+        fecha_vencimiento,
+        fecha_creacion,
+        fecha_borrado,
+        borrado,
+        fecha_pagado,
+        pagado
+      FROM prestamos_cuotas
     `;
     const params = [];
     return this.repository.databaseLayer
@@ -1005,6 +1199,21 @@ class Presupuesto extends BaseModel {
       ORDER BY fecha_creacion DESC
       LIMIT 1
     )`;
+    return this.repository.databaseLayer
+      .executeSql(sql, [])
+      .then(({ rows }) => rows);
+  }
+
+  static async exportar() {
+    const sql = `
+    SELECT
+      p.id,
+      p.fecha_creacion,
+      pd.rubro,
+      pd.cantidad_estimada
+    FROM presupuestos_detalle pd
+    INNER JOIN presupuestos p on pd.presupuesto_id = p.id
+    `;
     return this.repository.databaseLayer
       .executeSql(sql, [])
       .then(({ rows }) => rows);

@@ -258,6 +258,7 @@ const Dashboard = (props) => {
 
   const fetchDataGastosPorMedioPago = async () => {
     const gastos = await Egreso.sumaMesActualYMedioPago();
+    console.log(gastos);
     const gastosData = gastos.map(({ medio_pago, cantidad }, i) => ({
       x: medio_pago,
       y: formatNumber(cantidad),
