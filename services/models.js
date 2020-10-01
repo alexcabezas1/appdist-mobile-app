@@ -510,14 +510,26 @@ class Egreso extends BaseModel {
       .then(({ rows }) => rows);
   }
 
-  static sumaMesActualYMedioPago() {
-    const mesActual = moment().format("MM");
+  static async mesMasReciente() {
+    const mesMasReciente_sql = `
+    SELECT strftime('%m', max(fecha_creacion)) AS mes_reciente
+    FROM egresos
+    `;
+    const { rows } = await this.repository.databaseLayer.executeSql(
+      mesMasReciente_sql
+    );
+    return rows[0]["mes_reciente"];
+  }
+
+  static async sumaMesActualYMedioPago() {
+    const mesMasReciente = await Egreso.mesMasReciente();
+    //const mesActual = moment().format("MM");
     const sql = `
       SELECT
         e.medio_pago,
         SUM(e.cantidad) AS cantidad
       FROM egresos e
-      WHERE strftime('%m', e.fecha_creacion) = '${mesActual}'
+      WHERE strftime('%m', e.fecha_creacion) = '${mesMasReciente}'
       GROUP BY medio_pago
       ORDER BY cantidad
     `;
@@ -997,6 +1009,48 @@ class Presupuesto extends BaseModel {
       .executeSql(sql, [])
       .then(({ rows }) => rows);
   }
+
+  static async presupuestoMasReciente() {
+    const mesMasReciente_sql = `
+    SELECT id, strftime('%m', max(fecha_creacion)) AS mes_reciente
+    FROM presupuestos
+    `;
+    const { rows } = await this.repository.databaseLayer.executeSql(
+      mesMasReciente_sql
+    );
+    return rows[0];
+  }
+
+  static async realVSEstimado({ pagina = 1, tamanoDePagina = 5 }) {
+    const mesMasRecienteEgreso = await Egreso.mesMasReciente();
+    console.log(mesMasRecienteEgreso);
+    const {
+      id: presupuesto_id,
+      mes_reciente: mesMasRecientePresupuesto,
+    } = await Presupuesto.presupuestoMasReciente();
+    console.log(presupuesto_id, mesMasRecientePresupuesto);
+    const sql = `
+    SELECT
+      pd.rubro,
+      pd.cantidad_estimada,
+      COALESCE(e.cantidad, 0) AS cantidad_real
+    FROM presupuestos_detalle pd
+    LEFT JOIN (
+      SELECT
+        motivo,
+        SUM(cantidad) AS cantidad
+      FROM egresos
+      WHERE strftime('%m', fecha_operacion) = '${mesMasRecienteEgreso}'
+      GROUP BY motivo
+    ) e ON pd.rubro = e.motivo
+    WHERE presupuesto_id = '${presupuesto_id}'
+    ORDER BY pd.rubro, pd.cantidad_estimada
+    LIMIT ${tamanoDePagina} OFFSET ${(pagina - 1) * tamanoDePagina}
+    `;
+    return this.repository.databaseLayer
+      .executeSql(sql, [])
+      .then(({ rows }) => rows);
+  }
 }
 
 class PresupuestoDetalle extends BaseModel {
@@ -1024,6 +1078,16 @@ class PresupuestoDetalle extends BaseModel {
         default: () => currentDateTime(),
       },
     };
+  }
+
+  static async totalItems(id) {
+    const sql = `
+    SELECT COUNT(0) AS cantidad
+    FROM presupuestos_detalle
+    WHERE presupuesto_id = ${id}
+    `;
+    const { rows } = await this.repository.databaseLayer.executeSql(sql);
+    return rows[0]["cantidad"];
   }
 }
 
@@ -1142,14 +1206,14 @@ const EGRESOS_RUBROS_OPCIONES = {
   cable: { desc: "Cable" },
   internet: { desc: "Internet" },
   telefono: { desc: "Teléfono" },
-  servicio_limpieza: { desc: "Servicio de Limpieza" },
-  servicio_lavado: { desc: "Servicio de Lavado" },
-  reparacion_hogar: { desc: "Reparación en el Hogar" },
+  servicio_limpieza: { desc: "Servicio Limpieza" },
+  servicio_lavado: { desc: "Servicio Lavado" },
+  reparacion_hogar: { desc: "Reparación Hogar" },
   gasolina: { desc: "Gasolina" },
-  reparacion_auto: { desc: "Reparación del Auto" },
+  reparacion_auto: { desc: "Reparación Auto" },
   mudanza: { desc: "Mudanza" },
-  cuota_de_prestamo: { desc: "Cuota de Préstamo" },
-  resumen_tarjeta_crédito: { desc: "Resumen Tarjeta de Crédito" },
+  cuota_de_prestamo: { desc: "Cuota Préstamo" },
+  resumen_tarjeta_crédito: { desc: "Resumen Tarjeta Crédito" },
   impuestos_nacionales: {
     desc: "Impuestos Nacionales",
   },
@@ -1161,18 +1225,18 @@ const EGRESOS_RUBROS_OPCIONES = {
   hospedaje: { desc: "Hospedaje" },
   viáticos: { desc: "Viáticos" },
   transporte_en_viajes: {
-    desc: "Transporte al Viajar",
+    desc: "Transporte Viajes",
   },
   entretenimiento: { desc: "Entretenimiento" },
-  comer_afuera: { desc: "Comer afuera" },
+  comer_afuera: { desc: "Comer Afuera" },
   cine: { desc: "Cine" },
-  compra_ropa: { desc: "Compra de Ropa" },
-  compra_para_hogar: { desc: "Compra para el Hogar" },
+  compra_ropa: { desc: "Compra Ropa" },
+  compra_para_hogar: { desc: "Compra para Hogar" },
   regalo: { desc: "Regalo" },
   donacion: { desc: "Donación" },
-  compra_dolares: { desc: "Compra de Dólares" },
+  compra_dolares: { desc: "Compra Dólares" },
   compra_criptomonedas: {
-    desc: "Compra de Criptomonedas",
+    desc: "Compra Criptomonedas",
   },
   extraordinario: { desc: "Extraordinario" },
   otro: { desc: "Otro" },

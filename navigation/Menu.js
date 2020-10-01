@@ -70,13 +70,13 @@ function CustomDrawerContent({
           })}
         </ScrollView>
       </Block>
-      <Block flex={0.3} style={{ paddingLeft: 7, paddingRight: 14 }}>
+      {/*<Block flex={0.3} style={{ paddingLeft: 7, paddingRight: 14 }}>
         <DrawerCustomItem
           title="Cerrar Sesión"
           navigation={navigation}
           focused={state.index === 8 ? true : false}
         />
-      </Block>
+        </Block>*/}
     </Block>
   );
 }

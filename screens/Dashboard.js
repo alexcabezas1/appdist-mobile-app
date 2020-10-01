@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Dimensions } from "react-native";
-import { Container, Header, Content, Footer, Button } from "native-base";
+import {
+  Container,
+  Header,
+  Content,
+  Footer,
+  Button,
+  Picker,
+  Icon,
+} from "native-base";
 import {
   VictoryBar,
   VictoryChart,
@@ -16,7 +24,10 @@ import { B } from "./shared/common";
 import {
   Egreso,
   Cuenta,
+  Presupuesto,
+  PresupuestoDetalle,
   EGRESOS_MEDIO_PAGO_OPCIONES,
+  EGRESOS_RUBROS_OPCIONES,
   BANCOS_OPCIONES,
 } from "../services/models";
 import {
@@ -26,6 +37,7 @@ import {
   formatNumber,
   timestamp,
 } from "../services/common";
+import _ from "lodash";
 
 const DashboardScreen = ({ route, navigation, props }) => {
   const [version, setVersion] = useState();
@@ -80,6 +92,32 @@ const SaldoPorCuentaBancariaChart = (props) => (
       width={width2}
       theme={VictoryTheme.material}
       domainPadding={{ x: 60 }}
+      padding={{ top: 60, bottom: 50, left: 95, right: 0 }}
+    >
+      <VictoryAxis
+        style={{
+          tickLabels: { fill: "transparent" },
+        }}
+      />
+      <VictoryBar
+        data={props.data}
+        style={{
+          data: {
+            fill: ({ datum }) => (datum.y < 160000 ? "#d84343" : "#4f73f2"),
+          },
+        }}
+      />
+      <VictoryAxis dependentAxis />
+    </VictoryChart>
+  </React.Fragment>
+);
+
+const PresupuestoTotalVSGastadoChart = (props) => (
+  <React.Fragment>
+    <VictoryChart
+      width={width2}
+      theme={VictoryTheme.material}
+      domainPadding={{ x: 60 }}
       padding={{ top: 60, bottom: 50, left: 110, right: 0 }}
     >
       <VictoryAxis
@@ -91,7 +129,7 @@ const SaldoPorCuentaBancariaChart = (props) => (
         data={props.data}
         style={{
           data: {
-            fill: ({ datum }) => (datum.y < 10000 ? "#d84343" : "#4f73f2"),
+            fill: ({ datum }) => (datum.y < 160000 ? "#d84343" : "#4f73f2"),
           },
         }}
       />
@@ -177,34 +215,24 @@ const PresupuestoRealVSDesvioChart = (props) => {
 const PresupuestoRealVSDesvioChart2 = (props) => {
   return (
     <React.Fragment>
-      <VictoryChart height={600} width={Dimensions.width}>
+      <VictoryChart
+        height={450}
+        width={Dimensions.width}
+        domainPadding={{ x: 60 }}
+        padding={{ top: 20, bottom: 50, left: 10, right: 120 }}
+      >
         <VictoryGroup offset={20} colorScale={"qualitative"} horizontal>
+          <VictoryBar data={props.data.real} />
           <VictoryBar
-            data={[
-              { x: 1, y: 2000, label: "G1" },
-              { x: 2, y: 10000, desc: "G2" },
-              { x: 3, y: 7000, desc: "G3" },
-              { x: 4, y: 2000, label: "G4" },
-              { x: 5, y: 10000, desc: "G5" },
-              { x: 6, y: 7000, desc: "G6" },
-              { x: 7, y: 2000, label: "G7" },
-              { x: 8, y: 10000, desc: "G8" },
-              { x: 9, y: 7000, desc: "G9" },
-            ]}
-            labels={({ datum }) => datum.desc}
-          />
-          <VictoryBar
-            data={[
-              { x: 1, y: 3000, label: "G1" },
-              { x: 2, y: 9000, label: "G2" },
-              { x: 3, y: 9000, label: "G3" },
-              { x: 4, y: 3000, label: "G4" },
-              { x: 5, y: 9000, label: "G5" },
-              { x: 6, y: 9000, label: "G6" },
-              { x: 7, y: 3000, label: "G7" },
-              { x: 8, y: 9000, label: "G8" },
-              { x: 9, y: 9000, label: "G9" },
-            ]}
+            data={props.data.estimado}
+            labelComponent={
+              <VictoryLabel
+                dy={-15}
+                textAnchor="start"
+                backgroundPadding={[3, { left: 20, right: 20 }, { left: 20 }]}
+                backgroundStyle={[{ fill: "white", opacity: 0.4 }]}
+              />
+            }
           />
         </VictoryGroup>
         <VictoryAxis dependentAxis />
@@ -221,8 +249,14 @@ const PresupuestoRealVSDesvioChart2 = (props) => {
 const Dashboard = (props) => {
   const [gastosDelMesData, setGastosDelMesData] = useState([]);
   const [cuentasData, setCuentasData] = useState([]);
+  const [gastoRealVSEstimadoData, setGastoRealVSEstimadoData] = useState({});
+  const [gastoRealVSEstimadoPagina, setGastoRealVSEstimadoPagina] = useState(1);
+  const [
+    gastoRealVSEstimadoCantidadDetalle,
+    setGastoRealVSEstimadoCantidadDetalle,
+  ] = useState(0);
 
-  const fetchData = async () => {
+  const fetchDataGastosPorMedioPago = async () => {
     const gastos = await Egreso.sumaMesActualYMedioPago();
     const gastosData = gastos.map(({ medio_pago, cantidad }, i) => ({
       x: medio_pago,
@@ -230,7 +264,10 @@ const Dashboard = (props) => {
       label: EGRESOS_MEDIO_PAGO_OPCIONES[medio_pago].split(" "),
       i,
     }));
+    setGastosDelMesData(gastosData);
+  };
 
+  const fetchDataSaldoPorCuenta = async () => {
     const cuentas = await Cuenta.saldoPorCuenta();
     const cuentasData = cuentas.map(
       ({ id, saldo, numero, banco_asociado }, i) => ({
@@ -240,47 +277,51 @@ const Dashboard = (props) => {
         i,
       })
     );
-
-    setGastosDelMesData(gastosData);
     setCuentasData(cuentasData);
   };
 
+  const tamanoDePagina = 5;
+  const fetchDataRealVSEstimado = async () => {
+    const { id: presupuesto_id } = await Presupuesto.presupuestoMasReciente();
+    const totalItems = await PresupuestoDetalle.totalItems(presupuesto_id);
+    const pagina = gastoRealVSEstimadoPagina;
+    const gastoRealVSGastado = await Presupuesto.realVSEstimado({
+      pagina,
+      tamanoDePagina,
+    });
+    const gastoRealData = gastoRealVSGastado.map(
+      ({ rubro, cantidad_real }, i) => ({
+        x: rubro,
+        y: cantidad_real,
+        label: "(R)",
+        i,
+      })
+    );
+    const gastoEstimadoData = gastoRealVSGastado.map(
+      ({ rubro, cantidad_estimada }, i) => ({
+        x: rubro,
+        y: cantidad_estimada,
+        label: (EGRESOS_RUBROS_OPCIONES[rubro].desc + ".(E)").split(" "),
+        i,
+      })
+    );
+    const realVSEstimadoData = {
+      real: gastoRealData,
+      estimado: gastoEstimadoData,
+    };
+    console.log(gastoRealVSGastado);
+    setGastoRealVSEstimadoData(realVSEstimadoData);
+    setGastoRealVSEstimadoCantidadDetalle(totalItems);
+  };
+
   useEffect(() => {
-    fetchData();
+    fetchDataGastosPorMedioPago();
+    fetchDataSaldoPorCuenta();
   }, [props.version]);
 
-  const gastos_del_mes = [
-    { x: "de_contado", y: 30100, label: ["de", "contado"], i: 1 },
-    {
-      x: "tarjeta_de_crédito",
-      y: 23000,
-      label: ["tarjeta de", "crédito"],
-      i: 2,
-    },
-    { x: "tarjeta_de_débito", y: 5200, label: ["tarjeta de", "débito"], i: 3 },
-    { x: "débito_automático", y: 12000, label: ["débito", "automático"], i: 4 },
-  ];
-
-  const saldo_por_cuenta_bancaria = [
-    {
-      x: "hsbc_bank_9085978549584",
-      y: 30000,
-      label: ["HSBC Bank", "#9085978549584"],
-      i: 1,
-    },
-    {
-      x: "banco_frances_584954859484",
-      y: 10000,
-      label: ["Banco Frances", "#584954859484"],
-      i: 2,
-    },
-    {
-      x: "banco_ciudad_920398498343",
-      y: 5000,
-      label: ["Banco Ciudad", "#920398498343"],
-      i: 3,
-    },
-  ];
+  useEffect(() => {
+    fetchDataRealVSEstimado();
+  }, [props.version, gastoRealVSEstimadoPagina]);
 
   return (
     <React.Fragment>
@@ -292,10 +333,34 @@ const Dashboard = (props) => {
         <B>Saldo en Cuentas Bancarias</B>
         <SaldoPorCuentaBancariaChart data={cuentasData} />
       </View>
+      <View>
+        <View style={styles.container}>
+          <B>Gasto Estimado (E) vs Gasto Real (R)</B>
+        </View>
+        <Picker
+          name="medio_pago"
+          mode="dropdown"
+          iosIcon={<Icon name="arrow-down" />}
+          style={{ width: undefined, color: "black" }}
+          placeholder="Medio de Pago"
+          placeholderStyle={{ color: "#bfc6ea" }}
+          placeholderIconColor="#007aff"
+          selectedValue={gastoRealVSEstimadoPagina}
+          onValueChange={(v) => setGastoRealVSEstimadoPagina(v)}
+        >
+          {_.range(gastoRealVSEstimadoCantidadDetalle / tamanoDePagina).map(
+            (i) => (
+              <Picker.Item
+                label={"Página " + (i + 1)}
+                value={i + 1}
+                key={i + 1}
+              />
+            )
+          )}
+        </Picker>
+      </View>
       <View style={styles.container}>
-        <B>Presupuesto y Gasto Real</B>
-        <PresupuestoRealVSDesvioChart2 />
-        <PresupuestoRealVSDesvioChart />
+        <PresupuestoRealVSDesvioChart2 data={gastoRealVSEstimadoData} />
       </View>
     </React.Fragment>
   );
