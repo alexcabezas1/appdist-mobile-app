@@ -30,6 +30,7 @@ function CustomDrawerContent({
     "Prestamos",
     "Presupuesto",
     "Perfil",
+    "Exportar a Excel",
   ];
   return (
     <Block
@@ -76,6 +77,7 @@ function CustomDrawerContent({
           navigation={navigation}
           focused={state.index === 8 ? true : false}
         />
+        
       </Block>
     </Block>
   );
