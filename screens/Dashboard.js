@@ -103,7 +103,7 @@ const SaldoPorCuentaBancariaChart = (props) => (
         data={props.data}
         style={{
           data: {
-            fill: ({ datum }) => (datum.y < 160000 ? "#d84343" : "#4f73f2"),
+            fill: ({ datum }) => (datum.y < 70000 ? "#d84343" : "#4f73f2"),
           },
         }}
       />

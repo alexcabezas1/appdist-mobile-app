@@ -26,6 +26,14 @@ import {
 const { width } = Dimensions.get("screen");
 
 const CuentasScreen = ({ route, navigation, props }) => {
+  const [version, setVersion] = useState();
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      setVersion(timestamp());
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <Container>
       <Content>
@@ -36,7 +44,7 @@ const CuentasScreen = ({ route, navigation, props }) => {
         >
           <Text style={styles.homeButton}>+ Nueva Cuenta Bancaria</Text>
         </Button>
-        <ListaCuentas {...route.params} />
+        <ListaCuentas {...route.params} version={version} />
       </Content>
     </Container>
   );
