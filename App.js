@@ -11,7 +11,7 @@
 blabla
 */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Platform, StatusBar, Image, Text } from "react-native";
 import { AppLoading } from "expo";
 import { Asset } from "expo-asset";
@@ -25,6 +25,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import Screens from "./navigation/Screens";
 
 import { createTables, dropTables } from "./services/models";
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
 
 // Before rendering any navigation stack
 import { enableScreens } from "react-native-screens";
@@ -40,6 +42,35 @@ const assetImages = [
 
 // cache product images
 products.map((product) => assetImages.push(product.image));
+
+const TASK_NAME = "BACKGROUND_TASK";
+
+TaskManager.defineTask(TASK_NAME, () => {
+  try {
+    // fetch data here...
+    const receivedNewData = "Simulated fetch " + Math.random();
+    console.log("My task ", receivedNewData);
+
+    //TODO: identificar vencimientos y registrarlos en otra tabla
+    //TODO: registrar movimientos en cuenta para ingresos recurrentes y debitos automaticos
+    return receivedNewData
+      ? BackgroundFetch.Result.NewData
+      : BackgroundFetch.Result.NoData;
+  } catch (err) {
+    return BackgroundFetch.Result.Failed;
+  }
+});
+
+const registerBackgroundTask = async () => {
+  try {
+    await BackgroundFetch.registerTaskAsync(TASK_NAME, {
+      minimumInterval: 10, // seconds,
+    });
+    console.log("Task registered");
+  } catch (err) {
+    console.log("Task Register failed:", err);
+  }
+};
 
 function cacheImages(images) {
   return images.map((image) => {
@@ -57,6 +88,10 @@ export default function App(props) {
     await createTables();
     console.log("Tablas creadas");
   }, [])();
+
+  useEffect(() => {
+    registerBackgroundTask();
+  }, []);
 
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
 
